@@ -23,7 +23,7 @@ export const createPostgresAuditTrail = (sql: Sql): AccessAuditTrail => ({
       where true
       ${filter?.types ? sql`and type in ${sql([...filter.types])}` : sql``}
       ${filter?.accountId ? sql`and account_id = ${filter.accountId}` : sql``}
-      order by seq asc
+      ${filter?.newestFirst ? sql`order by seq desc` : sql`order by seq asc`}
       ${filter?.limit === undefined ? sql`` : sql`limit ${filter.limit}`}
     `;
     return rows.map((row) => ({

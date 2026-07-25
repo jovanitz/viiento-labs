@@ -2,6 +2,7 @@ import type {
   AccessActorReader,
   AccessAdminRepository,
   AccessAuditTrail,
+  AuditLabelResolver,
   AccessBlockStore,
   AccessGrantExpiryRecorder,
   AccessGrantRepository,
@@ -28,6 +29,7 @@ import {
   appendInMemoryAuditRecord,
   makeInMemoryAuditTrail,
 } from './audit-trail';
+import { makeInMemoryAuditLabelResolver } from './audit-resolver';
 import {
   makeInMemoryCustomerDirectory,
   makeInMemoryStaffDirectory,
@@ -46,10 +48,7 @@ import {
   makeInMemorySessionPolicyStore,
 } from './session-policy';
 import { accountKindOf, toAccessStoreState } from './seed/access-seed';
-import type {
-  AccessStoreState,
-  InMemoryAccessSeed,
-} from './seed/access-seed';
+import type { AccessStoreState, InMemoryAccessSeed } from './seed/access-seed';
 
 /**
  * In-memory implementation of every access port — the reference the Postgres
@@ -63,6 +62,7 @@ export type InMemoryAccessStore = {
   readonly actors: AccessActorReader;
   readonly grantExpiry: AccessGrantExpiryRecorder;
   readonly auditTrail: AccessAuditTrail;
+  readonly auditLabelResolver: AuditLabelResolver;
   readonly admin: AccessAdminRepository;
   readonly grants: AccessGrantRepository;
   readonly customers: CustomerDirectory;
@@ -152,6 +152,7 @@ export const createInMemoryAccessStore = (
       },
     },
     auditTrail: makeInMemoryAuditTrail(state),
+    auditLabelResolver: makeInMemoryAuditLabelResolver(state),
     admin: makeInMemoryAdminRepository(state),
     grants: makeGrantRepository(state),
     customers: makeInMemoryCustomerDirectory(state),

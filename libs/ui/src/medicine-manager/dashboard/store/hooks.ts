@@ -12,6 +12,7 @@ import {
   createSettingsStore,
   type SettingsStore,
 } from './settings/settings-store';
+import { createAuditStore, type AuditStore } from './audit/audit-store';
 import {
   createStaffDetailStore,
   type StaffDetailStore,
@@ -98,6 +99,15 @@ export const useStaffDetailStore = (
           )
         : null,
     [access, members, roles, sessions, userId, accountId],
+  );
+};
+
+/** React binding for the Audit store (access gate + the audit gateway). */
+export const useAuditStore = (): AuditStore | null => {
+  const { access, audit } = useUseCases();
+  return useMemo(
+    () => (access && audit ? createAuditStore({ access, audit }) : null),
+    [access, audit],
   );
 };
 

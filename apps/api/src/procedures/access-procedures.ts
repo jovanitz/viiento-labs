@@ -27,7 +27,7 @@ export const createAccessProcedures = (useCases: {
       })
       .strict(),
     handler: ({ actor, input }) =>
-      useCases.auditTrail.listAuditEvents({
+      useCases.auditTrail.listAuditView({
         actor,
         filter: {
           ...(input.accountId === undefined

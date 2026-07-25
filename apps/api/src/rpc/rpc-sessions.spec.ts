@@ -119,9 +119,9 @@ describe('POST /rpc/settings.update', () => {
       body: {},
     });
     const events = (await audit.json()) as {
-      data: ReadonlyArray<{ event: { type: string } }>;
+      data: ReadonlyArray<{ type: string }>;
     };
-    expect(events.data.map((r) => r.event.type)).toContain('settings.updated');
+    expect(events.data.map((r) => r.type)).toContain('settings.updated');
   });
 
   it('rejects out-of-bounds policies with the domain error', async () => {

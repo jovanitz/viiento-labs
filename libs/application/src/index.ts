@@ -32,6 +32,7 @@ export * from './impersonation/customer-use-cases';
 
 // Audit trail: append-only security event log
 export * from './audit-trail/ports';
+export * from './audit-trail/projection';
 export * from './audit-trail/use-cases';
 
 // Identity: token verification port + session registration/onboarding

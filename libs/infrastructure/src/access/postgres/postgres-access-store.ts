@@ -3,6 +3,7 @@ import type {
   AccessActorReader,
   AccessAdminRepository,
   AccessAuditTrail,
+  AuditLabelResolver,
   AccessBlockStore,
   AccessGrantExpiryRecorder,
   AccessGrantRepository,
@@ -24,6 +25,7 @@ import {
   createPostgresCustomerDirectory,
   createPostgresStaffDirectory,
 } from './audit-and-directory';
+import { createPostgresAuditLabelResolver } from './audit-resolver';
 import {
   createPostgresGrantExpiryRecorder,
   createPostgresGrantRepository,
@@ -51,6 +53,7 @@ export type PostgresAccessStore = {
   readonly actors: AccessActorReader;
   readonly grantExpiry: AccessGrantExpiryRecorder;
   readonly auditTrail: AccessAuditTrail;
+  readonly auditLabelResolver: AuditLabelResolver;
   readonly admin: AccessAdminRepository;
   readonly grants: AccessGrantRepository;
   readonly customers: CustomerDirectory;
@@ -78,6 +81,7 @@ export const createPostgresAccessStore = (config: {
     actors: createPostgresActorReader(sql),
     grantExpiry: createPostgresGrantExpiryRecorder(sql),
     auditTrail: createPostgresAuditTrail(sql),
+    auditLabelResolver: createPostgresAuditLabelResolver(sql),
     admin: createPostgresAdminRepository(sql),
     grants: createPostgresGrantRepository(sql),
     customers: createPostgresCustomerDirectory(sql),

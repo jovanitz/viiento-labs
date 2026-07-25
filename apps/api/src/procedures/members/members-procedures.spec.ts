@@ -49,11 +49,9 @@ describe('members.remove', () => {
 
     const audit = await callRpc(app, 'audit.list', { token: 'session-owner' });
     const events = (await audit.json()) as {
-      readonly data: ReadonlyArray<{
-        readonly event: { readonly type: string };
-      }>;
+      readonly data: ReadonlyArray<{ readonly type: string }>;
     };
-    expect(events.data.map((r) => r.event.type)).toContain('member.removed');
+    expect(events.data.map((r) => r.type)).toContain('member.removed');
   });
 
   it('409s removing yourself, 403s non-holders', async () => {

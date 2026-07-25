@@ -33,7 +33,11 @@ export const wireAccess = (deps: {
       sessionActivity: store.sessionActivity,
       clock,
     }),
-    auditTrail: makeAuditTrailUseCases({ trail: store.auditTrail, clock }),
+    auditTrail: makeAuditTrailUseCases({
+      trail: store.auditTrail,
+      resolver: store.auditLabelResolver,
+      clock,
+    }),
     accessAdmin: makeAccessAdminUseCases({
       admin: store.admin,
       settings: store.sessionPolicies,

@@ -26,8 +26,8 @@ const AuditView = ({ store }: { readonly store: AuditStore }) => {
         <tbody>
           {vm.entries.map((entry) => (
             <tr key={entry.id}>
-              <td>{entry.event.type}</td>
-              <td>{entry.event.occurredAt}</td>
+              <td>{entry.type}</td>
+              <td>{entry.occurredAt}</td>
             </tr>
           ))}
         </tbody>

@@ -1,11 +1,11 @@
 import { describe, expect, it } from 'vitest';
-import type { InMemoryAccessSeed } from '../../access/in-memory/seed/access-seed';
+import type { InMemoryAccessSeed } from '../../../access/in-memory/seed/access-seed';
 import {
   ACCESS_CONTRACT_NOW as NOW,
   accessContractSeed,
   makeAccessContractIds,
-} from './access-store-fixtures';
-import type { AccessStorePorts } from './access-store-fixtures';
+} from '../access-store-fixtures';
+import type { AccessStorePorts } from '../access-store-fixtures';
 
 /** The audit-trail read filters (type / account / limit), for both stores. */
 export const auditTrailContract = (
@@ -43,6 +43,14 @@ export const auditTrailContract = (
       const limited = await store.auditTrail.list({ limit: 1 });
       expect(limited).toHaveLength(1);
       expect(limited[0]?.event.type).toBe('login.failed');
+
+      // newestFirst flips the order, so `limit` returns the most recent N.
+      const recent = await store.auditTrail.list({
+        limit: 1,
+        newestFirst: true,
+      });
+      expect(recent).toHaveLength(1);
+      expect(recent[0]?.event.type).toBe('account.disabled');
     });
   });
 };

@@ -19,6 +19,7 @@ import type {
   AccessActorReader,
   AccessAdminRepository,
   AccessAuditTrail,
+  AuditLabelResolver,
   AccessGrantExpiryRecorder,
   AccessGrantRepository,
   AccessInvitationStore,
@@ -42,6 +43,7 @@ export type AccessStorePorts = {
   readonly actors: AccessActorReader;
   readonly grantExpiry: AccessGrantExpiryRecorder;
   readonly auditTrail: AccessAuditTrail;
+  readonly auditLabelResolver: AuditLabelResolver;
   readonly admin: AccessAdminRepository;
   readonly grants: AccessGrantRepository;
   readonly customers: CustomerDirectory;

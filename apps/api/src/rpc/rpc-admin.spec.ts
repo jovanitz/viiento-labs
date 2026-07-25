@@ -24,10 +24,10 @@ describe('account.disable', () => {
     const audit = await callRpc(app, 'audit.list', { token: 'session-owner' });
     const events = (await audit.json()) as {
       readonly data: ReadonlyArray<{
-        readonly event: { readonly type: string };
+        readonly type: string;
       }>;
     };
-    expect(events.data.map((r) => r.event.type)).toContain('account.disabled');
+    expect(events.data.map((r) => r.type)).toContain('account.disabled');
   });
 
   it('403s a customer, 404s an unknown account, 409s a repeat', async () => {
@@ -85,10 +85,10 @@ describe('account.enable', () => {
     const audit = await callRpc(app, 'audit.list', { token: 'session-owner' });
     const events = (await audit.json()) as {
       readonly data: ReadonlyArray<{
-        readonly event: { readonly type: string };
+        readonly type: string;
       }>;
     };
-    expect(events.data.map((r) => r.event.type)).toContain('account.enabled');
+    expect(events.data.map((r) => r.type)).toContain('account.enabled');
   });
 
   it('403s non-owners and 409s an account that is not disabled', async () => {

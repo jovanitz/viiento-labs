@@ -22,9 +22,13 @@ export const mockAccountAdmin = (
 export const testAuditEntries = [
   {
     id: 'evt-1',
-    event: { type: 'account.disabled', occurredAt: '2026-06-23T10:00:00.000Z' },
+    type: 'account.disabled',
+    category: 'access',
+    occurredAt: '2026-06-23T10:00:00.000Z',
+    actor: 'support@acme.test',
+    target: { kind: 'org', id: 'acc-1', label: 'Casa Pampa' },
   },
-];
+] as const;
 
 export const mockAudit = (
   overrides: Partial<AuditGateway> = {},

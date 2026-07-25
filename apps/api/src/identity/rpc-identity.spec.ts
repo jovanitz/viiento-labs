@@ -60,11 +60,13 @@ describe('identity pipeline (Supabase-shaped JWTs)', () => {
     const audit = await callRpc(app, 'audit.list', { token, body: {} });
     expect(audit.status).toBe(200);
     const events = (await audit.json()) as {
-      data: ReadonlyArray<{ event: { type: string } }>;
+      data: ReadonlyArray<{ type: string }>;
     };
-    expect(events.data.map((r) => r.event.type)).toEqual([
-      'owner.bootstrapped',
+    // The dashboard read model returns most-recent-first (newestFirst), so the
+    // login that followed the bootstrap now leads.
+    expect(events.data.map((r) => r.type)).toEqual([
       'login.succeeded',
+      'owner.bootstrapped',
     ]);
   });
 
@@ -178,12 +180,12 @@ describe('identity pipeline (Supabase-shaped JWTs)', () => {
 
     const audit = await callRpc(app, 'audit.list', { token: owner, body: {} });
     const events = (await audit.json()) as {
-      data: ReadonlyArray<{ event: { type: string } }>;
+      data: ReadonlyArray<{ type: string }>;
     };
-    expect(events.data.map((r) => r.event.type)).toContain(
+    expect(events.data.map((r) => r.type)).toContain(
       'invitation.created',
     );
-    expect(events.data.map((r) => r.event.type)).toContain(
+    expect(events.data.map((r) => r.type)).toContain(
       'invitation.accepted',
     );
   });

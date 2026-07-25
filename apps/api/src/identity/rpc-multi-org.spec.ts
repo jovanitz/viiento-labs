@@ -127,14 +127,14 @@ describe('multi-organization: one login, several organizations', () => {
     // the whole journey is on the audit trail
     const audit = await callRpc(app, 'audit.list', { token: owner, body: {} });
     const events = (await audit.json()) as {
-      data: ReadonlyArray<{ event: { type: string } }>;
+      data: ReadonlyArray<{ type: string }>;
     };
     for (const expected of [
       'invitation.created',
       'invitation.accepted',
       'session.switched',
     ]) {
-      expect(events.data.map((r) => r.event.type)).toContain(expected);
+      expect(events.data.map((r) => r.type)).toContain(expected);
     }
   });
 });

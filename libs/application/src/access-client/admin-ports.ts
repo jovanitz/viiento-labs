@@ -1,4 +1,5 @@
 import type { Result } from '@acme/shared';
+import type { AuditEntryView } from '../audit-trail/projection';
 import type { DirectoryGatewayError } from './ports';
 
 /**
@@ -33,11 +34,12 @@ export type AccountAdminGateway = {
   ) => Promise<Result<void, DirectoryGatewayError>>;
 };
 
-/** One audit-trail row as the dashboard renders it (`audit.list`). */
-export type AuditRecordDto = {
-  readonly id: string;
-  readonly event: { readonly type: string; readonly occurredAt: string };
-};
+/**
+ * One audit-trail row as the dashboard renders it (`audit.list`) — enriched
+ * server-side: the event's category plus its actor/target resolved to display
+ * labels (see `AuditEntryView`). The client makes no join of its own.
+ */
+export type AuditRecordDto = AuditEntryView;
 
 /** Read the append-only security audit trail (staff `audit.read`). */
 export type AuditGateway = {

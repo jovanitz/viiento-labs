@@ -18,7 +18,8 @@ import {
 import type { AccessStorePorts } from './access-store-fixtures';
 import { adminRepositoryContract } from './admin-repository-contract';
 import { accountLifecycleContract } from './account-lifecycle-contract';
-import { auditTrailContract } from './audit-trail-contract';
+import { auditTrailContract } from './audit/audit-trail-contract';
+import { auditLabelResolverContract } from './audit/audit-resolver-contract';
 import { adminAntiOrphanContract } from './admin-anti-orphan-contract';
 import { memberDirectoryContract } from './member-directory-contract';
 import { roleContracts } from './role/contracts';
@@ -213,12 +214,12 @@ export const accessStoreContract = (
       });
       expect(await store.customers.read(ids.acctSupport)).toBeNull();
     });
-
   });
 
   adminRepositoryContract(name, makeStore);
   accountLifecycleContract(name, makeStore);
   auditTrailContract(name, makeStore);
+  auditLabelResolverContract(name, makeStore);
   adminAntiOrphanContract(name, makeStore);
   memberDirectoryContract(name, makeStore);
   roleContracts(name, makeStore);

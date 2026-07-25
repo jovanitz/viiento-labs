@@ -75,9 +75,9 @@ describe('POST /hooks/password-verification', () => {
       body: '{}',
     });
     const events = (await audit.json()) as {
-      data: ReadonlyArray<{ event: { type: string } }>;
+      data: ReadonlyArray<{ type: string }>;
     };
-    expect(events.data.map((r) => r.event.type)).toContain('login.failed');
+    expect(events.data.map((r) => r.type)).toContain('login.failed');
   });
 
   it('rejects a bad signature and ignores successful attempts', async () => {
@@ -107,8 +107,8 @@ describe('POST /hooks/password-verification', () => {
       body: '{}',
     });
     const events = (await audit.json()) as {
-      data: ReadonlyArray<{ event: { type: string } }>;
+      data: ReadonlyArray<{ type: string }>;
     };
-    expect(events.data.map((r) => r.event.type)).not.toContain('login.failed');
+    expect(events.data.map((r) => r.type)).not.toContain('login.failed');
   });
 });

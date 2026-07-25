@@ -2,8 +2,21 @@ import { describe, expect, it } from 'vitest';
 import { fixedClock } from '@acme/shared';
 import type { AccessAuditEvent } from '@acme/domain';
 import { TEST_ACCESS_NOW, testAccessActor } from '../access/testing';
-import type { AccessAuditFilter, AccessAuditRecord } from './ports';
+import type {
+  AccessAuditFilter,
+  AccessAuditRecord,
+  AuditLabelResolver,
+} from './ports';
 import { makeAuditTrailUseCases } from './use-cases';
+
+const emptyResolver: AuditLabelResolver = {
+  resolve: async () => ({
+    memberships: new Map(),
+    accounts: new Map(),
+    users: new Map(),
+    sessions: new Map(),
+  }),
+};
 
 const inMemoryTrail = (seed: AccessAuditEvent[] = []) => {
   const records: AccessAuditRecord[] = seed.map((event, index) => ({
@@ -31,8 +44,12 @@ const loginEvent: AccessAuditEvent = {
   occurredAt: TEST_ACCESS_NOW,
 };
 
-const deps = (trail: ReturnType<typeof inMemoryTrail>) => ({
+const deps = (
+  trail: ReturnType<typeof inMemoryTrail>,
+  resolver: AuditLabelResolver = emptyResolver,
+) => ({
   trail: trail.port,
+  resolver,
   clock: fixedClock(new Date(TEST_ACCESS_NOW)),
 });
 
@@ -90,5 +107,92 @@ describe('listAuditEvents', () => {
     });
     expect(foreign.ok).toBe(false);
     if (!foreign.ok) expect(foreign.error.tag).toBe('app/access-denied');
+  });
+});
+
+describe('listAuditView', () => {
+  it('projects records and resolves their ids to labels', async () => {
+    const trail = inMemoryTrail([
+      {
+        type: 'account.disabled',
+        accountId: 'acc-cust',
+        actorMembershipId: 'mem-support',
+        reason: null,
+        occurredAt: TEST_ACCESS_NOW,
+      },
+    ]);
+    const resolver: AuditLabelResolver = {
+      resolve: async (refs) => {
+        expect(refs.memberships).toContain('mem-support');
+        expect(refs.accounts).toContain('acc-cust');
+        return {
+          memberships: new Map([
+            [
+              'mem-support',
+              {
+                label: 'support@acme.test',
+                accountId: 'acc-staff',
+                accountName: 'Acme Staff',
+                kind: 'staff' as const,
+              },
+            ],
+          ]),
+          accounts: new Map([
+            ['acc-cust', { name: 'Clínica Norte', kind: 'customer' as const }],
+          ]),
+          users: new Map(),
+          sessions: new Map(),
+        };
+      },
+    };
+    const uc = makeAuditTrailUseCases(deps(trail, resolver));
+    const r = await uc.listAuditView({
+      actor: testAccessActor({ preset: 'owner' }),
+    });
+    expect(r.ok).toBe(true);
+    if (r.ok) {
+      expect(r.value).toHaveLength(1);
+      expect(r.value[0]).toMatchObject({
+        type: 'account.disabled',
+        category: 'access',
+        actor: 'support@acme.test',
+        target: { kind: 'org', id: 'acc-cust', label: 'Clínica Norte' },
+      });
+    }
+  });
+
+  it('denies the same callers as the raw list (support/customer)', async () => {
+    const trail = inMemoryTrail([loginEvent]);
+    const uc = makeAuditTrailUseCases(deps(trail));
+    const r = await uc.listAuditView({
+      actor: testAccessActor({ preset: 'support' }),
+    });
+    expect(r.ok).toBe(false);
+    if (!r.ok) expect(r.error.tag).toBe('app/access-denied');
+  });
+
+  it('scopes resolution: null viewer for any-scope, own account for own-scope', async () => {
+    const trail = inMemoryTrail([loginEvent]);
+    const seen: (string | null)[] = [];
+    const resolver: AuditLabelResolver = {
+      resolve: async (_refs, viewerAccountId) => {
+        seen.push(viewerAccountId);
+        return {
+          memberships: new Map(),
+          accounts: new Map(),
+          users: new Map(),
+          sessions: new Map(),
+        };
+      },
+    };
+    const uc = makeAuditTrailUseCases(deps(trail, resolver));
+    // Platform owner reads the global trail → any-scope → unrestricted (null).
+    await uc.listAuditView({ actor: testAccessActor({ preset: 'owner' }) });
+    // Org admin reads only their account's slice → own-scope → confined to it.
+    await uc.listAuditView({
+      actor: testAccessActor({ preset: 'customer-admin', accountId: 'acct-1' }),
+      filter: { accountId: 'acct-1' },
+    });
+    expect(seen).toEqual([null, 'acct-1']);
   });
 });

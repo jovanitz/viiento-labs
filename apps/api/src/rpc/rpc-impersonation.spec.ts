@@ -96,12 +96,13 @@ describe('the impersonation arc', () => {
     const audit = await callRpc(app, 'audit.list', { token: 'session-owner' });
     const events = (await audit.json()) as {
       readonly data: ReadonlyArray<{
-        readonly event: { readonly type: string };
+        readonly type: string;
       }>;
     };
-    expect(events.data.map((r) => r.event.type)).toEqual([
-      'impersonation.started',
+    // Most-recent-first (the dashboard read model's newestFirst order).
+    expect(events.data.map((r) => r.type)).toEqual([
       'impersonation.ended',
+      'impersonation.started',
     ]);
   });
 });

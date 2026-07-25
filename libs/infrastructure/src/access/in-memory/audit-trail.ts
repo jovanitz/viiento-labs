@@ -42,8 +42,9 @@ export const makeInMemoryAuditTrail = (
   },
   list: async (filter) => {
     const matching = state.auditRecords.filter((r) => matchesFilter(r, filter));
+    const ordered = filter?.newestFirst ? [...matching].reverse() : matching;
     return filter?.limit === undefined
-      ? matching
-      : matching.slice(0, filter.limit);
+      ? ordered
+      : ordered.slice(0, filter.limit);
   },
 });
