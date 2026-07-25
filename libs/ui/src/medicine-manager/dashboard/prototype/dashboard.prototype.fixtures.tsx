@@ -9,7 +9,6 @@ import type {
   SessionRow,
 } from '../permissions/permissions.types';
 import type { AuditVM } from '../audit/audit.view';
-import type { InviteVM } from '../invite/invite.view';
 import type { SettingsVM } from '../settings/settings.view';
 
 import {
@@ -137,8 +136,6 @@ export const auditVM: AuditVM = {
     },
   ],
 };
-
-export const inviteVM: InviteVM = { busy: false };
 
 export const settingsVM: SettingsVM = {
   policy: {

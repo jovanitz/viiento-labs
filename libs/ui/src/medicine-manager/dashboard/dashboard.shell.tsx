@@ -6,7 +6,6 @@ import {
   ScrollText,
   Settings,
   ShieldCheck,
-  UserPlus,
   Users,
 } from 'lucide-react';
 import { AppShell } from '../../design-system/app-shell/app-shell';
@@ -37,7 +36,6 @@ export type DashboardSection =
   | 'Roles'
   | 'Templates'
   | 'Plans'
-  | 'Invite'
   | 'Audit'
   | 'Settings';
 
@@ -49,7 +47,6 @@ const NAV: ReadonlyArray<{
   { label: 'Roles', icon: ShieldCheck },
   { label: 'Templates', icon: LayoutTemplate },
   { label: 'Plans', icon: CreditCard },
-  { label: 'Invite', icon: UserPlus },
   { label: 'Audit', icon: ScrollText },
   { label: 'Settings', icon: Settings },
 ];

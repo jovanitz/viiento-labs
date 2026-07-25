@@ -10,7 +10,6 @@ import { useState } from 'react';
 import { DashboardShell, type DashboardSection } from '../dashboard.shell';
 import { DirectoryView } from '../directory/directory.view';
 import { RolesSection, TemplatesSection } from './dashboard.prototype.roles';
-import { InviteView } from '../invite/invite.view';
 import { AuditView } from '../audit/audit.view';
 import { SettingsView } from '../settings/settings.view';
 import { Toaster, toast } from '../../../design-system/toast/toaster';
@@ -85,8 +84,6 @@ const Section = ({
       return <TemplatesSection />;
     case 'Plans':
       return <PlansSection />;
-    case 'Invite':
-      return <InviteView vm={fx.inviteVM} onInvite={noop} />;
     case 'Audit':
       return (
         <AuditView
