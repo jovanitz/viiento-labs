@@ -4,7 +4,7 @@ import { OrgDetailView } from './org-detail.view';
 import type { BillingDialogVM, OrgDetailVM } from './org-detail.types';
 import {
   populatedVM,
-  withImpersonationVM,
+  trialingVM,
   gatedVM,
   trialExpiredVM,
   suspendedVM,
@@ -31,7 +31,6 @@ type Story = StoryObj<typeof OrgDetailView>;
 
 const actions = {
   onBack: () => undefined,
-  onImpersonate: () => undefined,
   onMarkPaid: () => undefined,
   onExtendTrial: () => undefined,
   onChangePlan: () => undefined,
@@ -42,7 +41,6 @@ const actions = {
   onViewMember: () => undefined,
   onCloseMember: () => undefined,
   onBlockMember: () => undefined,
-  onSetMemberAccount: () => undefined,
   onVoidPayment: () => undefined,
   onRefundPayment: () => undefined,
 };
@@ -83,10 +81,8 @@ const inShell = (vm: OrgDetailVM) =>
 
 /** Staff with `members.read` (any): full roster, owner marked, paid Pro plan. */
 export const Populated: Story = { render: inShell(populatedVM) };
-/** Also holds a `customer.read` grant → "View as customer" appears. */
-export const WithImpersonation: Story = {
-  render: inShell(withImpersonationVM),
-};
+/** A trialing org — same administrative roster read, different billing block. */
+export const Trialing: Story = { render: inShell(trialingVM) };
 /** A role without `members.read` — roster hidden; billing read-only (no levers). */
 export const MembersHidden: Story = { render: inShell(gatedVM) };
 /** Phase `grace`: trial ended, unpaid — service still on, counting down. */

@@ -2,13 +2,14 @@
  * UI-local types for the Customer (Org) Detail screen — decoupled from
  * application DTOs so wiring maps INTO them (zero-rework). Import-free.
  *
- * Data source (already in the model, no impersonation): staff hold
- * `members.read` at `any` scope → `listMembers(accountId)` returns the roster.
- * Impersonation (`customer.read`, grant-only) is a SEPARATE, optional action.
+ * Data source: staff hold `members.read` at `any` scope → `listMembers(accountId)`
+ * returns the roster. This is an administrative read — "view as customer"
+ * (impersonation) is NOT a dashboard concern; it lives in the giro's customer
+ * app under a support identity.
  */
 
 export type OrgStatus = 'active' | 'disabled' | 'blocked';
-export type OrgMemberStatus = 'active' | 'blocked' | 'disabled' | 'root';
+export type OrgMemberStatus = 'active' | 'blocked' | 'root';
 
 /**
  * Product-visible subscription phase (draft). Maps from the domain's derived
@@ -141,8 +142,6 @@ export type OrgMemberRow = {
   readonly isRoot?: boolean;
   /** Soft block — access to THIS org suspended, reversible (`members.block`). */
   readonly blocked?: boolean;
-  /** Hard disable — the user's whole account is off (identity-level). */
-  readonly disabled?: boolean;
 };
 
 export type OrgDetailVM = {
@@ -154,12 +153,10 @@ export type OrgDetailVM = {
   readonly owner?: { readonly name: string; readonly email?: string };
   /** Staff holds `members.read` (any) → the roster is visible (not a grant). */
   readonly canViewMembers: boolean;
-  /** Staff can moderate members (block / disable) — the ⋯ menu + panel levers. */
+  /** Staff can moderate members (soft block) — the ⋯ menu + panel lever. */
   readonly canManageMembers: boolean;
   /** The member whose detail panel is open — panel state is VM data, not view. */
   readonly openMember?: OrgMemberRow | undefined;
-  /** An active `customer.read` grant → offer "view as customer" (impersonation). */
-  readonly canImpersonate: boolean;
   /** The org's billing block (ADR-0016); absent while loading / on error. */
   readonly subscription?: OrgSubscriptionVM | undefined;
   /** Staff levers (mark paid / extend trial / change plan) are offered. */
@@ -176,8 +173,6 @@ export type OrgDetailVM = {
 export type OrgDetailActions = {
   /** Back to the directory (customers tab). */
   readonly onBack: () => void;
-  /** Start "view as customer" — impersonation, separate from the roster read. */
-  readonly onImpersonate: () => void;
   /** Staff billing levers — REQUEST opening the matching dialog. */
   readonly onMarkPaid: () => void;
   readonly onExtendTrial: () => void;
@@ -194,11 +189,6 @@ export type OrgDetailActions = {
   readonly onCloseMember: () => void;
   /** Soft block / unblock a member in THIS org (`members.block`). */
   readonly onBlockMember: (membershipId: string, blocked: boolean) => void;
-  /** Hard disable / enable the member's whole account (identity-level). */
-  readonly onSetMemberAccount: (
-    userId: string,
-    action: 'disable' | 'enable',
-  ) => void;
   /** Reverse a mistaken payment — it never really happened (ADR-0018 void). */
   readonly onVoidPayment: (entryId: string, reason: string) => void;
   /** Return money actually paid back to the customer (ADR-0018 refund). */

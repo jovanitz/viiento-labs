@@ -71,7 +71,6 @@ const base: OrgDetailVM = {
   owner: { name: 'Lucía Fuentes', email: 'lucia@norte.mx' },
   canViewMembers: true,
   canManageMembers: true,
-  canImpersonate: false,
   canManageBilling: true,
   members,
   loading: false,
@@ -83,10 +82,9 @@ export const populatedVM: OrgDetailVM = {
   subscription: activeSubscription,
 };
 
-/** Also holds an active `customer.read` grant → "View as customer" is offered. */
-export const withImpersonationVM: OrgDetailVM = {
+/** A trialing org variant (the roster read is the same). */
+export const trialingVM: OrgDetailVM = {
   ...base,
-  canImpersonate: true,
   subscription: trialingSubscription,
 };
 

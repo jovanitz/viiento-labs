@@ -73,7 +73,6 @@ export const OrgDrilldown: Story = {
               name: clicked?.displayName ?? orgDetailVM.name,
             }}
             onBack={() => setOrgId(null)}
-            onImpersonate={() => undefined}
             onMarkPaid={() => undefined}
             onExtendTrial={() => undefined}
             onChangePlan={() => undefined}
@@ -84,7 +83,6 @@ export const OrgDrilldown: Story = {
             onViewMember={() => undefined}
             onCloseMember={() => undefined}
             onBlockMember={() => undefined}
-            onSetMemberAccount={() => undefined}
             onVoidPayment={() => undefined}
             onRefundPayment={() => undefined}
           />
@@ -96,7 +94,7 @@ export const OrgDrilldown: Story = {
             onRegenerate={() => undefined}
             onOpenOrg={setOrgId}
             onOpenStaff={() => undefined}
-              onResendInvite={() => undefined}
+            onResendInvite={() => undefined}
             onRevokeInvitation={() => undefined}
             onInviteOrphan={() => undefined}
             onDeleteOrphan={() => undefined}

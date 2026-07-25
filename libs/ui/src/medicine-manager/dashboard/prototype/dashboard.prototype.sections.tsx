@@ -31,8 +31,6 @@ const previewFor = (s?: OrgSubscriptionVM): RecordPaymentPreview => ({
     : {}),
 });
 
-const noop = () => undefined;
-
 /** Pure roster updaters — kept flat so the handlers below don't nest deeply. */
 const withBlocked = (
   ms: readonly OrgMemberRow[],
@@ -40,13 +38,6 @@ const withBlocked = (
   blocked: boolean,
 ): OrgMemberRow[] =>
   ms.map((m) => (m.membershipId === membershipId ? { ...m, blocked } : m));
-
-const withDisabled = (
-  ms: readonly OrgMemberRow[],
-  userId: string,
-  disabled: boolean,
-): OrgMemberRow[] =>
-  ms.map((m) => (m.userId === userId ? { ...m, disabled } : m));
 
 /** Interactive staff-access detail — block/roles/grants and sessions mutate
  *  local fixture state so the click-through feels real. */
@@ -115,7 +106,7 @@ const useLedger = (initial: readonly OrgLedgerEntry[]) => {
   };
 };
 
-/** Local member moderation state for the prototype (block/disable + open panel). */
+/** Local member moderation state for the prototype (block + open panel). */
 const useMembers = () => {
   const [members, setMembers] = useState(fx.orgDetailVM.members);
   const [openId, setOpenId] = useState<string | null>(null);
@@ -126,8 +117,6 @@ const useMembers = () => {
     onCloseMember: () => setOpenId(null),
     onBlockMember: (id: string, blocked: boolean) =>
       setMembers((ms) => withBlocked(ms, id, blocked)),
-    onSetMemberAccount: (userId: string, action: 'disable' | 'enable') =>
-      setMembers((ms) => withDisabled(ms, userId, action === 'disable')),
   };
 };
 
@@ -164,7 +153,6 @@ export const OrgDetailSection = ({
         ledger: led.ledger,
       }}
       onBack={onBack}
-      onImpersonate={noop}
       onMarkPaid={() =>
         setDialog({ kind: 'mark-paid', preview: previewFor(sub) })
       }
@@ -190,7 +178,6 @@ export const OrgDetailSection = ({
       onViewMember={mem.onViewMember}
       onCloseMember={mem.onCloseMember}
       onBlockMember={mem.onBlockMember}
-      onSetMemberAccount={mem.onSetMemberAccount}
       onVoidPayment={led.onVoidPayment}
       onRefundPayment={led.onRefundPayment}
     />

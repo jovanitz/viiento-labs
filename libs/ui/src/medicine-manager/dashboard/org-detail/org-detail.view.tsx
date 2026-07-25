@@ -8,9 +8,9 @@
  * Signed off and wired: the seam is `org-detail.container.tsx` (billing levers +
  * ledger void/refund + member block). Presentational still — a pure function of
  * (ViewModel + actions). The roster is an administrative read (`members.read` at
- * `any` scope — staff hold it), NOT impersonation; `canViewMembers` is a normal
- * capability flag. "View as customer" (impersonation, a separate session-switch
- * feature) is not wired here — its button stays hidden (`canImpersonate=false`).
+ * `any` scope — staff hold it); `canViewMembers` is a normal capability flag.
+ * "View as customer" (impersonation) is NOT a dashboard concern — that lives in
+ * the giro's customer app under a support identity.
  */
 import type { ReactNode } from 'react';
 import { ArrowLeft, Lock } from 'lucide-react';
@@ -53,30 +53,15 @@ const Stat = ({
   </div>
 );
 
-const Header = ({
-  vm,
-  onImpersonate,
-}: {
-  readonly vm: OrgDetailVM;
-  readonly onImpersonate: () => void;
-}) => (
-  <div className="flex flex-wrap items-start justify-between gap-3">
-    <div>
-      <div className="flex items-center gap-2">
-        <h1 className="text-xl font-semibold text-foreground">{vm.name}</h1>
-        <Badge variant={orgStatusVariant[vm.status]} appearance="soft" dot>
-          {vm.status}
-        </Badge>
-      </div>
-      <p className="text-sm text-muted-foreground">
-        {vm.email ?? vm.accountId}
-      </p>
+const Header = ({ vm }: { readonly vm: OrgDetailVM }) => (
+  <div>
+    <div className="flex items-center gap-2">
+      <h1 className="text-xl font-semibold text-foreground">{vm.name}</h1>
+      <Badge variant={orgStatusVariant[vm.status]} appearance="soft" dot>
+        {vm.status}
+      </Badge>
     </div>
-    {vm.canImpersonate ? (
-      <Button variant="outline" onClick={onImpersonate}>
-        View as customer
-      </Button>
-    ) : null}
+    <p className="text-sm text-muted-foreground">{vm.email ?? vm.accountId}</p>
   </div>
 );
 
@@ -93,7 +78,7 @@ const Info = ({ vm }: { readonly vm: OrgDetailVM }) => (
 
 type MemberTableActions = Pick<
   OrgDetailActions,
-  'onViewMember' | 'onBlockMember' | 'onSetMemberAccount'
+  'onViewMember' | 'onBlockMember'
 >;
 
 const Members = ({
@@ -125,7 +110,6 @@ const Members = ({
 export const OrgDetailView = ({
   vm,
   onBack,
-  onImpersonate,
   onMarkPaid,
   onExtendTrial,
   onChangePlan,
@@ -136,7 +120,6 @@ export const OrgDetailView = ({
   onViewMember,
   onCloseMember,
   onBlockMember,
-  onSetMemberAccount,
   onVoidPayment,
   onRefundPayment,
 }: { readonly vm: OrgDetailVM } & OrgDetailActions) => {
@@ -158,7 +141,7 @@ export const OrgDetailView = ({
       >
         <ArrowLeft /> Directory
       </Button>
-      <Header vm={vm} onImpersonate={onImpersonate} />
+      <Header vm={vm} />
       <Info vm={vm} />
       <BillingBlock
         vm={vm}
@@ -168,10 +151,7 @@ export const OrgDetailView = ({
         onVoidPayment={onVoidPayment}
         onRefundPayment={onRefundPayment}
       />
-      <Members
-        vm={vm}
-        actions={{ onViewMember, onBlockMember, onSetMemberAccount }}
-      />
+      <Members vm={vm} actions={{ onViewMember, onBlockMember }} />
       {vm.billingDialog ? (
         <BillingDialogs
           dialog={vm.billingDialog}
@@ -185,7 +165,6 @@ export const OrgDetailView = ({
         member={vm.openMember}
         onCloseMember={onCloseMember}
         onBlockMember={onBlockMember}
-        onSetMemberAccount={onSetMemberAccount}
       />
     </div>
   );

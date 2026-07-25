@@ -152,9 +152,6 @@ export const toOrgDetailVM = (rm: OrgDetailViewModel): OrgDetailVM => {
     createdAt: dateOnly(rm.createdAt),
     canViewMembers: rm.canViewMembers,
     canManageMembers: rm.canManageMembers,
-    // Impersonation ("view as customer") is a separate session-switch feature,
-    // not wired here — never offer the button from this screen yet.
-    canImpersonate: false,
     canManageBilling: rm.canManageBilling,
     members: rm.members.map(toMemberRow),
     loading: false,

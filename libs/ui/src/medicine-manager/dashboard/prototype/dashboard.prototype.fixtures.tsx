@@ -16,7 +16,7 @@ import {
   trialExpiredVM,
   suspendedVM,
   dormantVM,
-  withImpersonationVM,
+  trialingVM,
 } from '../org-detail/org-detail.fixtures';
 import type { OrgSubscriptionVM } from '../org-detail/org-detail.types';
 
@@ -31,7 +31,7 @@ export const orgSubscriptions: Record<string, OrgSubscriptionVM | undefined> = {
   org_11: orgDetailVM.subscription, // active
   org_12: trialExpiredVM.subscription, // grace
   org_13: dormantVM.subscription, // dormant
-  org_14: withImpersonationVM.subscription, // trialing
+  org_14: trialingVM.subscription, // trialing
   org_15: suspendedVM.subscription, // suspended
 };
 

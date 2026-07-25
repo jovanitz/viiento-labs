@@ -15,10 +15,9 @@ import type {
   OrgMemberStatus,
 } from './org-detail.types';
 
-/** Precedence: root and a disabled account override a soft block for the badge. */
+/** Precedence: root overrides a soft block for the badge. */
 export const memberStatus = (m: OrgMemberRow): OrgMemberStatus => {
   if (m.isRoot) return 'root';
-  if (m.disabled) return 'disabled';
   if (m.blocked) return 'blocked';
   return 'active';
 };
@@ -30,7 +29,6 @@ export const memberStatusVariant: Record<
 > = {
   active: 'success',
   blocked: 'warning',
-  disabled: 'destructive',
   root: 'secondary',
 };
 
@@ -38,10 +36,7 @@ export const memberStatusVariant: Record<
 export const isProtectedMember = (m: OrgMemberRow) =>
   m.isOwner || m.isRoot === true;
 
-type MemberActions = Pick<
-  OrgDetailActions,
-  'onViewMember' | 'onBlockMember' | 'onSetMemberAccount'
->;
+type MemberActions = Pick<OrgDetailActions, 'onViewMember' | 'onBlockMember'>;
 
 /** Only the relevant toggle shows — Block on an active member, Unblock on a blocked one. */
 const ModerationItems = ({
@@ -57,16 +52,6 @@ const ModerationItems = ({
       onSelect={() => actions.onBlockMember(row.membershipId, !row.blocked)}
     >
       {row.blocked ? 'Unblock in this org' : 'Block in this org'}
-    </DropdownMenuItem>
-    <DropdownMenuItem
-      onSelect={() =>
-        actions.onSetMemberAccount(
-          row.userId,
-          row.disabled ? 'enable' : 'disable',
-        )
-      }
-    >
-      {row.disabled ? 'Enable account' : 'Disable account'}
     </DropdownMenuItem>
   </>
 );

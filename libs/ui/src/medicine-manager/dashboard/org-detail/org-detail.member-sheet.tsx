@@ -1,11 +1,11 @@
 /**
  * Member detail — a right-side panel (Sheet) over a roster row: the user's
- * identity + membership info (ids included) and the moderation levers. Block is
- * a soft, per-org suspension (`members.block`); Disable turns off the whole
- * account (identity-level). The org owner and root identities are protected.
+ * identity + membership info (ids included) and the moderation lever: Block is
+ * a soft, per-org suspension (`members.block`). The org owner and root
+ * identities are protected.
  */
 import type { ReactNode } from 'react';
-import { Ban, Power, RotateCcw, ShieldCheck } from 'lucide-react';
+import { Ban, RotateCcw, ShieldCheck } from 'lucide-react';
 import {
   Sheet,
   SheetContent,
@@ -22,10 +22,7 @@ import {
 } from './org-detail.columns';
 import type { OrgDetailActions, OrgMemberRow } from './org-detail.types';
 
-type SheetActions = Pick<
-  OrgDetailActions,
-  'onCloseMember' | 'onBlockMember' | 'onSetMemberAccount'
->;
+type SheetActions = Pick<OrgDetailActions, 'onCloseMember' | 'onBlockMember'>;
 
 const Field = ({
   label,
@@ -75,19 +72,6 @@ const Moderation = ({
         {member.blocked ? <RotateCcw /> : <Ban />}
         {member.blocked ? 'Unblock in this org' : 'Block in this org'}
       </Button>
-      <Button
-        variant="outline"
-        className="text-destructive hover:text-destructive"
-        onClick={() =>
-          actions.onSetMemberAccount(
-            member.userId,
-            member.disabled ? 'enable' : 'disable',
-          )
-        }
-      >
-        {member.disabled ? <RotateCcw /> : <Power />}
-        {member.disabled ? 'Enable account' : 'Disable account'}
-      </Button>
     </div>
   );
 };
@@ -120,7 +104,6 @@ export const MemberSheet = ({
   member,
   onCloseMember,
   onBlockMember,
-  onSetMemberAccount,
 }: { readonly member?: OrgMemberRow | undefined } & SheetActions) => (
   <Sheet
     open={!!member}
@@ -140,10 +123,7 @@ export const MemberSheet = ({
             </Badge>
           </div>
         </SheetHeader>
-        <Body
-          member={member}
-          actions={{ onCloseMember, onBlockMember, onSetMemberAccount }}
-        />
+        <Body member={member} actions={{ onCloseMember, onBlockMember }} />
       </SheetContent>
     ) : null}
   </Sheet>

@@ -105,7 +105,7 @@ const billing = (over: Partial<OrgBilling> = {}): OrgBilling => ({
 });
 
 describe('loadOrgDetail', () => {
-  it('staff with members.read: full roster + derived owner, no impersonation', async () => {
+  it('staff with members.read: full roster + derived owner', async () => {
     const result = await loadOrgDetail(
       {
         access: access([{ action: 'members.read', scope: 'any' }]),
@@ -117,7 +117,6 @@ describe('loadOrgDetail', () => {
     expect(result.ok).toBe(true);
     if (!result.ok) return;
     expect(result.value.canViewMembers).toBe(true);
-    expect(result.value.canImpersonate).toBe(false);
     expect(result.value.members).toEqual(MEMBERS);
     expect(result.value.owner).toEqual({
       name: 'Lucía Fuentes',
@@ -126,11 +125,11 @@ describe('loadOrgDetail', () => {
     expect(result.value.name).toBe('Clínica Norte');
   });
 
-  it('support (impersonation.start, no members.read): summary only, roster gated, never fetched', async () => {
+  it('actor without members.read: summary only, roster gated, never fetched', async () => {
     const listMembers = vi.fn(async () => ok(MEMBERS));
     const result = await loadOrgDetail(
       {
-        access: access([{ action: 'impersonation.start', scope: 'any' }]),
+        access: access([{ action: 'audit.read', scope: 'any' }]),
         orgs: orgs({ listMembers }),
         billing: billing(),
       },
@@ -139,7 +138,6 @@ describe('loadOrgDetail', () => {
     expect(result.ok).toBe(true);
     if (!result.ok) return;
     expect(result.value.canViewMembers).toBe(false);
-    expect(result.value.canImpersonate).toBe(true);
     expect(result.value.members).toEqual([]);
     expect(result.value.owner).toBeNull();
     expect(listMembers).not.toHaveBeenCalled();

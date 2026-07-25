@@ -31,8 +31,6 @@ export type OrgDetailViewModel = {
   readonly canViewMembers: boolean;
   /** Actor can moderate members (block / disable) — `members.block`. */
   readonly canManageMembers: boolean;
-  /** Actor can start impersonation ("view as customer") — a SEPARATE action. */
-  readonly canImpersonate: boolean;
   readonly members: ReadonlyArray<OrgMemberDto>;
   /** Present when the actor holds `billing.read` AND the summary read worked;
    * a failed/gated summary leaves it undefined without sinking the page. */
@@ -68,10 +66,11 @@ const fetchBilling = async (
 
 /**
  * Loads a customer org's detail for the directory drill-down. The roster is an
- * administrative read gated by `members.read` (staff any / org admin own) — NOT
- * impersonation. "View as customer" (`impersonation.start`) is offered
- * separately. Owner is derived from the roster; when the actor lacks
- * `members.read` the roster is empty and the screen shows the gated state.
+ * administrative read gated by `members.read` (staff any / org admin own).
+ * "View as customer" (impersonation) is deliberately NOT a dashboard concern —
+ * that experience lives in the giro's customer app under a support identity.
+ * Owner is derived from the roster; when the actor lacks `members.read` the
+ * roster is empty and the screen shows the gated state.
  * When the actor holds `billing.read` the org's subscription summary is
  * attached (see `fetchSubscription`); `plans.manage` gates the levers.
  */
@@ -112,7 +111,6 @@ export const loadOrgDetail = async (
       : null,
     canViewMembers,
     canManageMembers: holdsAction(access, 'members.block'),
-    canImpersonate: holdsAction(access, 'impersonation.start'),
     members: roster.value,
     ...billing,
     canManageBilling: holdsAction(access, 'plans.manage'),

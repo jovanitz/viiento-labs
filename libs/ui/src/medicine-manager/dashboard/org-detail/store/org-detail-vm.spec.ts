@@ -55,7 +55,6 @@ const rm = (over: Partial<OrgDetailViewModel> = {}): OrgDetailViewModel => ({
   owner: { name: 'Lucía', email: 'lucia@norte.mx' },
   canViewMembers: true,
   canManageMembers: true,
-  canImpersonate: true,
   members: [
     {
       membershipId: 'm-1',
@@ -73,11 +72,10 @@ const rm = (over: Partial<OrgDetailViewModel> = {}): OrgDetailViewModel => ({
 });
 
 describe('toOrgDetailVM', () => {
-  it('maps identity + members, dates to YYYY-MM-DD, never offers impersonation', () => {
+  it('maps identity + members, dates to YYYY-MM-DD', () => {
     const vm = toOrgDetailVM(rm());
     expect(vm.name).toBe('Clínica Norte');
     expect(vm.createdAt).toBe('2026-03-14');
-    expect(vm.canImpersonate).toBe(false); // deferred feature — always hidden
     expect(vm.members[0]?.name).toBe('Lucía Fuentes');
     expect(vm.members[0]?.role).toBe('Owner');
     expect(vm.members[0]?.isOwner).toBe(true);
