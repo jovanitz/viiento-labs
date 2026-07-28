@@ -45,7 +45,7 @@ const preview: Preview = {
       matchers: { color: /(background|color)$/i, date: /Date$/i },
     },
     // Sidebar order: the shared design system first, then one section per
-    // product/giro (Medicine Manager, …) — alphabetical via `*`. Inside a
+    // product/giro (Bison Manager, …) — alphabetical via `*`. Inside a
     // product the tree nests App → Feature. See docs/ai/screens.md.
     options: {
       storySort: {

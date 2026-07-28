@@ -12,7 +12,7 @@
 
 ## Context
 
-The monorepo ships **products/giros** — distinct businesses (Medicine Manager
+The monorepo ships **products/giros** — distinct businesses (Bison Manager
 today; others later), each with its own dashboard + N apps. The question:
 when real databases arrive, do giros share infrastructure — one DB, one
 identity pool, one API — or is each giro its own world?

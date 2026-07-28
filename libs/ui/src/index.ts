@@ -75,17 +75,17 @@ export * from './access/access-login-screen';
 export * from './dashboard/login-screen';
 export * from './dashboard/require-admin';
 export * from './dashboard/dashboard-screen';
-// Medicine-manager giro: the app shell + the wired Directory container
+// Bison-manager giro: the app shell + the wired Directory container
 // (ADR-0017 giro isolation, ADR-0018 billing coverage).
-export * from './medicine-manager/dashboard/dashboard.shell';
-export * from './medicine-manager/dashboard/directory/directory.container';
-export * from './medicine-manager/dashboard/plans/plans.container';
-export * from './medicine-manager/dashboard/roles/roles.container';
-export * from './medicine-manager/dashboard/roles/templates.container';
-export * from './medicine-manager/dashboard/settings/settings.container';
-export * from './medicine-manager/dashboard/audit/audit.container';
-export * from './medicine-manager/dashboard/permissions/permissions.container';
-export * from './medicine-manager/dashboard/org-detail/org-detail.container';
+export * from './bison-manager/dashboard/dashboard.shell';
+export * from './bison-manager/dashboard/directory/directory.container';
+export * from './bison-manager/dashboard/plans/plans.container';
+export * from './bison-manager/dashboard/roles/roles.container';
+export * from './bison-manager/dashboard/roles/templates.container';
+export * from './bison-manager/dashboard/settings/settings.container';
+export * from './bison-manager/dashboard/audit/audit.container';
+export * from './bison-manager/dashboard/permissions/permissions.container';
+export * from './bison-manager/dashboard/org-detail/org-detail.container';
 export * from './dashboard/invitations/invite-member-form';
 export * from './dashboard/invitations/activate-invitation-screen';
 export * from './dashboard/permissions/manage-permissions-form';

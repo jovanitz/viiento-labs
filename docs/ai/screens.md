@@ -162,7 +162,7 @@ slice (one-way flow): [libs/ui/src/client/manage-org](../../libs/ui/src/client/m
 
 ## Organization — by product (giro), then app, then feature
 
-Views are grouped by **product / giro** first (e.g. Medicine Manager), because a
+Views are grouped by **product / giro** first (e.g. Bison Manager), because a
 product ships **several apps** (a dashboard + N apps). The design system stays
 one shared layer above all products. Three levels:
 
@@ -172,11 +172,11 @@ Case. States (loading/empty/error/…) are the story **exports**, not title leve
 ```
 libs/ui/src/
   design-system/                          → "Design System/*"        (shared, all products)
-  medicine-manager/                       ← product / giro
+  bison-manager/                       ← product / giro
     dashboard/
-      directory/directory.view.tsx        → "Medicine Manager/Dashboard/Directory"
+      directory/directory.view.tsx        → "Bison Manager/Dashboard/Directory"
       directory/directory.view.stories.tsx
-    <other-app>/<feature>/…               → "Medicine Manager/<App>/<Feature>"
+    <other-app>/<feature>/…               → "Bison Manager/<App>/<Feature>"
   <other-product>/<app>/<feature>/…       → "<Product>/<App>/<Feature>"
 ```
 
@@ -220,7 +220,7 @@ stores + flows + use cases. Its UI is a **skeleton**. The plan is to
 
 1. Look at the implemented screen in `libs/ui/src/dashboard/<section>` (+ its
    store) to derive the real `ViewModel` + actions.
-2. Build `medicine-manager/dashboard/<section>/<section>.view.tsx` presentational
+2. Build `bison-manager/dashboard/<section>/<section>.view.tsx` presentational
    (DS, `@phase draft`) + stories with mock VMs for each state. Then run the
    **visual quality bar** above — screenshot, critique, fix the weakest thing —
    before you verify + stop.
@@ -259,5 +259,5 @@ shareable URL for a demo, a `/prototype` route in a real app shell.
 fixtures for store-fed data and moves navigation into the router — the pure views
 don't change. That's a bonus, not the point of the prototype.)
 
-Example: [medicine-manager/dashboard/prototype](../../libs/ui/src/medicine-manager/dashboard/prototype)
+Example: [bison-manager/dashboard/prototype](../../libs/ui/src/bison-manager/dashboard/prototype)
 (`dashboard.prototype.tsx` + `.fixtures.tsx` + `.stories.tsx`).
