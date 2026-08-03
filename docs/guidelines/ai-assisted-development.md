@@ -34,7 +34,7 @@ no-React execution path. Use the following workflow.
    relevant contract test and run `nx test infrastructure`.
 5. **Exercise UI states with component tests.** Render the screen against mock
    use cases (see
-   [item-screen.spec.tsx](../../libs/ui/src/example/item-screen.spec.tsx));
+   [item-screen.spec.tsx](../../libs/verticals/lab/ui/src/example/item-screen.spec.tsx));
    simulate offline/failure by injecting the in-memory queue or a failing
    `ApiClient`.
 6. **Verify the slice.** `nx affected -t lint typecheck test`.

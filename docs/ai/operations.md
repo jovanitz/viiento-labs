@@ -53,7 +53,7 @@ would be a lie. That synthesis is exactly the coupling this rule forbids.
    builds it.
 
 Reference implementation: the Plans screen
-([libs/ui/src/bison-manager/dashboard/plans](../../libs/ui/src/bison-manager/dashboard/plans),
+([libs/verticals/bison/ui/src/dashboard/plans](../../libs/verticals/bison/ui/src/dashboard/plans),
 [registry-inputs.ts](../../libs/application/src/flows/dashboard/registry-inputs.ts)).
 
 ## Escape hatches (rare, self-documenting)

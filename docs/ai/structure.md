@@ -53,12 +53,21 @@ of the Stop guardrail, so a violation blocks "done".
 - **Function > 70 / too complex** → extract named helper functions. Prefer many
   small pure functions over one big one.
 
-## App naming (giros)
+## App naming (verticals)
 
-New giro apps are named `<giro>-<app>` (e.g. `girob-api`, `girob-dashboard`).
-The unqualified names (`api`, `dashboard`, `client`, `web`, `mobile`,
-`desktop`) are legacy names owned by the EXISTING giro — never mint new
-unqualified app names (ADR-0017; Nx project names are workspace-unique).
+Apps live in `apps/<vertical>/<app>/` and their Nx project name is
+`<vertical>-<app>` (`bison-dashboard`, `lab-web`). The prefix is not decoration:
+Nx project names are workspace-unique, and two verticals both shipping a
+`dashboard` would collide. There are no unqualified app names left
+(ADR-0017, ADR-0019).
+
+A vertical's libs follow the same shape: `libs/verticals/<vertical>/<layer>/`,
+project name `<vertical>-<layer>`, alias `@acme/<vertical>-<layer>`. Bare layer
+names (`libs/ui`, `libs/domain`) are the SHARED engines, tagged `vertical:core`.
+
+One gotcha the tooling will not spell out: give each vertical's
+`vitest.config.ts` an explicit `test.name`. Vitest derives the workspace project
+name from the folder, and every vertical's UI folder is called `ui`.
 
 ## Exemptions (deliberate)
 

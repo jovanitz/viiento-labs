@@ -14,8 +14,8 @@ the machine-readable form is [capabilities.json](capabilities.json).
 | `application`    | `layer:application`    | `libs/application`                                                                             | Use cases, **port types**, DTOs, **flows** (controllers) — orchestration | `domain`, `shared`                |
 | `infrastructure` | `layer:infrastructure` | `libs/infrastructure`                                                                          | Adapters: Dexie, REST, JWT auth, sync engine                             | `application`, `domain`, `shared` |
 | `platform`       | `layer:platform`       | `libs/platform`                                                                                | Device ports + browser/Capacitor/Tauri adapters                          | `application`, `domain`, `shared` |
-| `ui`             | `layer:ui`             | `libs/ui`                                                                                      | Design system + feature screens + stores (read ViewModels, dispatch)     | `application`, `shared`           |
-| `apps/*`         | `layer:app`            | `apps/*` (one folder per app; a giro ships several — api, dashboard, client + platform shells) | Composition roots — wire concrete adapters                               | everything                        |
+| `ui`             | `layer:ui`             | `libs/ui` (shared) + `libs/verticals/<v>/ui` (a vertical's screens)                            | Design system, DI seam, shared chrome / feature screens + stores         | `application`, `shared`           |
+| `apps/*`         | `layer:app`            | `apps/<vertical>/*` (a vertical ships several — api, dashboard, client + platform shells)      | Composition roots — wire concrete adapters                               | everything                        |
 
 ## Where does my change go?
 
@@ -43,10 +43,13 @@ the machine-readable form is [capabilities.json](capabilities.json).
   database", it actually needs a use case; add/extend one in `application`.
 - Adding a platform = one new `apps/*` + the native adapters; the inward layers do
   not change. See [new-platform.md](../guidelines/new-platform.md).
-- Adding a **giro** (a new isolated product) = new thin API app + its own
-  auth/DB project + its own `AccessConfig` vocabulary + its own migrations —
-  never a schema/table shared with another giro. See
-  [ADR-0017](../adr/0017-giro-isolation.md); `apps/app-b` is the seed shape.
+- Adding a **vertical** (_giro_ — a new isolated product) = new thin API app +
+  its own auth/DB project + its own `AccessConfig` vocabulary + its own
+  migrations — never a schema/table shared with another vertical. Its code goes
+  in `apps/<vertical>/` and `libs/verticals/<vertical>/`, tagged
+  `vertical:<name>`, which the boundary rule enforces against every sibling. See
+  [ADR-0019](../adr/0019-vertical-tag-axis.md) and
+  [ADR-0017](../adr/0017-giro-isolation.md); copy the `lab` vertical.
 
 ## Folder layout per layer
 

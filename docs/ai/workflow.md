@@ -35,8 +35,8 @@ if a use case or adapter has no test.
 
 6. **Exercise UI states.** Put a thin **store** over the controller, then render
    the screen against mock use cases (see
-   [item-screen.spec.tsx](../../libs/ui/src/example/item-screen.spec.tsx) and
-   [manage-org-section.spec.tsx](../../libs/ui/src/client/manage-org/manage-org-section.spec.tsx));
+   [item-screen.spec.tsx](../../libs/verticals/lab/ui/src/example/item-screen.spec.tsx) and
+   [manage-org-section.spec.tsx](../../libs/verticals/lab/ui/src/client/manage-org/manage-org-section.spec.tsx));
    simulate failure by injecting a failing `ApiClient`. The component only reads
    the ViewModel and dispatches.
 

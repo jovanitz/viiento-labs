@@ -155,50 +155,57 @@ platform`, `/di/`, `use-cases-context`, `*.store`) — presentational in **both*
 - `draft` with a container → warning (you’re wiring the unapproved).
 
 Config knob: `screens` in [harness.config.mjs](../../harness.config.mjs). Template
-slice (one-way flow): [libs/ui/src/client/manage-org](../../libs/ui/src/client/manage-org)
+slice (one-way flow): [libs/verticals/lab/ui/src/client/manage-org](../../libs/verticals/lab/ui/src/client/manage-org)
 
-- [libs/ui/src/client/store](../../libs/ui/src/client/store). See also
+- [libs/verticals/lab/ui/src/client/store](../../libs/verticals/lab/ui/src/client/store). See also
   [flows.md](flows.md) for the UI → Store → Controller → Use case → Domain rule.
 
-## Organization — by product (giro), then app, then feature
+## Organization — by vertical, then app, then feature
 
-Views are grouped by **product / giro** first (e.g. Bison Manager), because a
-product ships **several apps** (a dashboard + N apps). The design system stays
-one shared layer above all products. Three levels:
+Views are grouped by **vertical** first, because a vertical ships **several
+apps** (a dashboard + N apps). Since [ADR-0019](../adr/0019-vertical-tag-axis.md)
+that grouping is not a folder convention but a **project** boundary: each
+vertical's UI is its own Nx project tagged `vertical:<name>`, so one vertical
+cannot import another's screens even by accident. The design system stays one
+shared layer above all of them, in `libs/ui` (`vertical:core`).
 
-**`<product>/<app>/<feature>`** — folder in kebab-case, Storybook title in Title
+**`<vertical>/<app>/<feature>`** — folder in kebab-case, Storybook title in Title
 Case. States (loading/empty/error/…) are the story **exports**, not title levels.
 
 ```
-libs/ui/src/
-  design-system/                          → "Design System/*"        (shared, all products)
-  bison-manager/                       ← product / giro
+libs/ui/src/design-system/              → "Design System/*"   (shared, every vertical)
+libs/verticals/
+  bison/ui/src/                         ← the vertical's own Nx project
     dashboard/
-      directory/directory.view.tsx        → "Bison Manager/Dashboard/Directory"
+      directory/directory.view.tsx      → "Bison/Dashboard/Directory"
       directory/directory.view.stories.tsx
-    <other-app>/<feature>/…               → "Bison Manager/<App>/<Feature>"
-  <other-product>/<app>/<feature>/…       → "<Product>/<App>/<Feature>"
+    <other-app>/<feature>/…             → "Bison/<App>/<Feature>"
+  <other-vertical>/ui/src/<app>/<feature>/…
 ```
 
 - **Design system** = shared primitives/composites → `libs/ui/src/design-system/**`,
-  `Design System/*`. Reused by every product.
-- **Views** = product-scoped compositions → `libs/ui/src/<product>/<app>/<feature>/<feature>.view.tsx`,
-  titled **`<Product>/<App>/<Feature>`**.
+  `Design System/*`. Reused by every vertical, reached through `@acme/ui` —
+  never by a relative path out of a vertical's tree.
+- **Views** = vertical-scoped compositions →
+  `libs/verticals/<vertical>/ui/src/<app>/<feature>/<feature>.view.tsx`,
+  titled **`<Vertical>/<App>/<Feature>`**.
 
 Sidebar order is pinned in [.storybook/preview.ts](../../libs/ui/.storybook/preview.ts)
-(`options.storySort` → `['Design System', '*']`: DS first, products alphabetical).
-The stories glob already covers `libs/ui/src/**`, so a new product/app/view shows
-up automatically once its `title` follows `<Product>/<App>/<Feature>`.
+(`options.storySort` → `['Design System', '*']`: DS first, verticals alphabetical).
+The stories glob covers both `libs/ui/src/**` and every
+`libs/verticals/*/ui/src/**`, so a new vertical/app/view shows up automatically
+once its `title` follows `<Vertical>/<App>/<Feature>`.
 
-Branding: brand is a _product/app_ choice (its `.brand-*` preset). A view can
+Branding: brand is a _vertical/app_ choice (its `.brand-*` preset). A view can
 default to it with `parameters: { globals: { brand: 'violet' } }`; the toolbar
-still previews any brand. The `screens` sensor scans all of `libs/ui/src`, so it
-governs every product's views identically — no per-product config.
+still previews any brand. The `screens` sensor scans `libs/ui/src` **and**
+`libs/verticals`, so it governs every vertical's views identically — no
+per-vertical config.
 
 ## Working method — re-skin the implemented base, section by section
 
 There is already an **implemented base**: the staff dashboard in
-[libs/ui/src/dashboard](../../libs/ui/src/dashboard) (login/gate, accounts,
+[libs/verticals/lab/ui/src/dashboard](../../libs/verticals/lab/ui/src/dashboard) (login/gate, accounts,
 invitations, roles, permissions, block, audit, settings) — fully wired to its
 stores + flows + use cases. Its UI is a **skeleton**. The plan is to
 **re-express that base with the design system**, and then grow new UI — always
@@ -218,9 +225,9 @@ stores + flows + use cases. Its UI is a **skeleton**. The plan is to
 
 **Per-section recipe:**
 
-1. Look at the implemented screen in `libs/ui/src/dashboard/<section>` (+ its
+1. Look at the implemented screen in `libs/verticals/lab/ui/src/dashboard/<section>` (+ its
    store) to derive the real `ViewModel` + actions.
-2. Build `bison-manager/dashboard/<section>/<section>.view.tsx` presentational
+2. Build `libs/verticals/<vertical>/ui/src/dashboard/<section>/<section>.view.tsx` presentational
    (DS, `@phase draft`) + stories with mock VMs for each state. Then run the
    **visual quality bar** above — screenshot, critique, fix the weakest thing —
    before you verify + stop.
@@ -259,5 +266,5 @@ shareable URL for a demo, a `/prototype` route in a real app shell.
 fixtures for store-fed data and moves navigation into the router — the pure views
 don't change. That's a bonus, not the point of the prototype.)
 
-Example: [bison-manager/dashboard/prototype](../../libs/ui/src/bison-manager/dashboard/prototype)
+Example: [bison/ui/src/dashboard/prototype](../../libs/verticals/bison/ui/src/dashboard/prototype)
 (`dashboard.prototype.tsx` + `.fixtures.tsx` + `.stories.tsx`).

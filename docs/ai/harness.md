@@ -134,6 +134,20 @@ This is **self-enforcing**, so it can't silently rot:
 - `doctor` is **auto-discovering** — it scans `sensors/`+`generators/` and fails if
   any script isn't wired into the CLI (and vice-versa), plus checks `AGENTS.md`,
   skill→CLI mapping, git hooks, and `capabilities.json`↔ESLint.
+- `doctor` also checks that the sensors **still see the code** — every configured
+  scan root resolves to real source, project discovery reaches every
+  `project.json`, and each project carries both a `layer:*` and a `vertical:*`
+  tag. Wiring checks alone cannot catch this: after ADR-0019 moved the apps and
+  vertical libs, `impact` stayed wired, ran fine and reported green while
+  classifying 10 of 16 projects as `unknown` — which downstream reads as "no
+  impact" rather than "not found". **A sensor that scans nothing is
+  indistinguishable from one that finds nothing**, and only the silent version
+  is dangerous. The floor is deliberately ZERO rather than a percentage against
+  a baseline: a drop-threshold fires on every legitimate deletion, and a noisy
+  check is one people learn to skip. Project discovery is shared
+  (`scripts/harness/project-graph.mjs`) so `doctor` exercises the same code
+  `impact` depends on, and counted against an independent walk so a bug in the
+  walker cannot conceal itself.
 - The **Stop hook runs `doctor` automatically when the diff touches the harness**
   (`scripts/harness/`, `.claude/`, `.githooks/`, `AGENTS.md`, `CLAUDE.md`,
   `package.json`, `eslint.config.mjs`, `capabilities.json`) — so a portability

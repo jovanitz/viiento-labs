@@ -65,9 +65,9 @@ wire in `apps/*`.
 - controllers: [libs/application/src/flows/client/org-admin.ts](../../libs/application/src/flows/client/org-admin.ts) ·
   registry: [libs/application/src/flows/client/registry.ts](../../libs/application/src/flows/client/registry.ts) ·
   mock-MCP proof: [registry.spec.ts](../../libs/application/src/flows/client/registry.spec.ts)
-- store: [libs/ui/src/client/store/org-admin-store.ts](../../libs/ui/src/client/store/org-admin-store.ts) ·
-  binding: [store/hooks.ts](../../libs/ui/src/client/store/hooks.ts)
-- component: [manage-org-section.tsx](../../libs/ui/src/client/manage-org/manage-org-section.tsx) (render + dispatch only)
+- store: [libs/verticals/lab/ui/src/client/store/org-admin-store.ts](../../libs/verticals/lab/ui/src/client/store/org-admin-store.ts) ·
+  binding: [store/hooks.ts](../../libs/verticals/lab/ui/src/client/store/hooks.ts)
+- component: [manage-org-section.tsx](../../libs/verticals/lab/ui/src/client/manage-org/manage-org-section.tsx) (render + dispatch only)
 
 ## File layout
 

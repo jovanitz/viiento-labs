@@ -53,19 +53,19 @@ pnpm graph              # interactive dependency graph
 ```
 
 No credentials needed for local dev: the api ships public local-stack defaults
-([apps/api/.env.development](apps/api/.env.development)) and the web falls back
+([apps/bison/api/.env.development](apps/bison/api/.env.development)) and the web falls back
 to public defaults in code, so both `pnpm api` and `pnpm web` just work.
-Personal/production overrides go in gitignored `apps/api/.env` /
-`apps/web/.env`. Without Docker, the api falls back to an in-memory stub
+Personal/production overrides go in gitignored `apps/bison/api/.env` /
+`apps/lab/web/.env`. Without Docker, the api falls back to an in-memory stub
 (comment out the `SUPABASE_*` vars) and the Postgres-bound specs skip
 themselves.
 
 **Environment variables** — every var each app reads is documented in its
-`.env.example`: [apps/api/.env.example](apps/api/.env.example) (server) and
-[apps/web/.env.example](apps/web/.env.example) (Vite, `VITE_*`). In production
+`.env.example`: [apps/bison/api/.env.example](apps/bison/api/.env.example) (server) and
+[apps/lab/web/.env.example](apps/lab/web/.env.example) (Vite, `VITE_*`). In production
 (`NODE_ENV=production`) the api **refuses to boot** unless the
 `[prod-required]` vars are set — a missing one can never silently downgrade to
-an insecure default (`apps/api/src/boot-safety.ts`).
+an insecure default (`apps/bison/api/src/boot-safety.ts`).
 
 Auth/authorization design:
 [ADR-0010](docs/adr/0010-authorization-permissions-and-grants.md) ·
@@ -89,8 +89,8 @@ the architecture:
 | Offline sync                      | [libs/infrastructure/src/sync](libs/infrastructure/src/sync)                                                     |
 | Capacitor adapter                 | [libs/platform/src/capacitor/capacitor-platform.ts](libs/platform/src/capacitor/capacitor-platform.ts)           |
 | Tauri adapter                     | [libs/platform/src/tauri/tauri-platform.ts](libs/platform/src/tauri/tauri-platform.ts)                           |
-| React feature screen              | [libs/ui/src/example/item-screen.tsx](libs/ui/src/example/item-screen.tsx)                                       |
-| Composition root                  | [apps/web/src/composition-root.ts](apps/web/src/composition-root.ts)                                             |
+| React feature screen              | [libs/verticals/lab/ui/src/example/item-screen.tsx](libs/verticals/lab/ui/src/example/item-screen.tsx)                                       |
+| Composition root                  | [apps/lab/web/src/composition-root.ts](apps/lab/web/src/composition-root.ts)                                             |
 
 ## Documentation
 

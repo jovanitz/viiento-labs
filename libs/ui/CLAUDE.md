@@ -1,13 +1,18 @@
-# libs/ui — `layer:ui`
+# libs/ui — `layer:ui`, `vertical:core`
 
-Design system + feature screens. **May import `application` and `shared` only.**
+The SHARED half of the UI. **May import `application` and `shared` only.**
 
-- **Holds:** design-system components (shared by ALL giros), feature screens +
-  **stores** organized product-first — `src/<product>/<app>/…` per
-  [screens.md](../../docs/ai/screens.md) (giro-specific UI never leaves its
-  `src/<giro>/` dir — ADR-0017; `src/client` + `src/dashboard` are the existing
-  giro's legacy pre-namespace screens), and DI wiring for React
-  (`src/{design-system,example,di}`).
+- **Holds:** the design system (used by every vertical), the React DI seam
+  factory, the dev debug bridge, and shared identity chrome —
+  `src/{design-system,di,debug,identity}`. Shared chrome takes its use cases as
+  **props**: core instantiates no vertical's seam and so cannot read one.
+- **Does NOT hold a vertical's screens.** Since
+  [ADR-0019](../../docs/adr/0019-vertical-tag-axis.md) each vertical's UI is its
+  own Nx project — `libs/verticals/<name>/ui`, tagged `vertical:<name>` — and
+  this project is tagged `vertical:core`, so the boundary rule fails the build
+  if vertical-specific UI lands here. A vertical reaches the design system
+  through `@acme/ui`, never by a relative path out of its own tree. Layout and
+  Storybook titles: [screens.md](../../docs/ai/screens.md).
 - **Forbidden:** `infrastructure`, `platform`, **and `domain`**. A screen never
   news up an adapter and never imports the DB/native APIs.
 - **Pattern (one-way flow — see [flows.md](../../docs/ai/flows.md)):**

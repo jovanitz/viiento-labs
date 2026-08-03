@@ -7,10 +7,10 @@
 > [../business-rules/access.md](../business-rules/access.md) (`pnpm harness rules`).
 >
 > **Giro scoping (ADR-0017):** the ENGINE (domain/application/infrastructure
-> machinery) is shared by all giros; the concrete vocabulary, API (`apps/api`),
+> machinery) is shared by all giros; the concrete vocabulary, API (`apps/bison/api`),
 > auth project and generated rules doc described below belong to the EXISTING
 > giro. Each giro instantiates its own world from the same engine
-> ([ADR-0017](../adr/0017-giro-isolation.md); `apps/app-b` is the template).
+> ([ADR-0017](../adr/0017-giro-isolation.md); `apps/lab/app-b` is the template).
 
 ## The one idea that explains everything: **identity ≠ authorization**
 
@@ -42,11 +42,11 @@ visible on the **very next request** (revocation immediacy). Adapters:
 [postgres actor-reader](../../libs/infrastructure/src/access/postgres/actor-reader.ts)
 and the in-memory twin must honour this identically (same contract test).
 
-## The request pipeline (apps/api, Hono)
+## The request pipeline (apps/bison/api, Hono)
 
 Every capability is **one `ApiProcedure`** — name + Zod schema + required
 `action` + use-case handler — declared in
-[apps/api/src/procedures](../../apps/api/src/procedures). Routes are generated:
+[apps/bison/api/src/procedures](../../apps/bison/api/src/procedures). Routes are generated:
 `POST /rpc/<name>`. The order is the whole security story:
 
 1. **actor middleware** — resolve the actor from the bearer token. No/!valid →
@@ -163,7 +163,7 @@ Signup creates an **org-less identity**: no membership, no session
 
 The client app's gate renders: anonymous → login; authenticated but org-less →
 "create your organization"; soft-blocked → notice; else → the app
-([require-session](../../libs/ui/src/client/require-session.tsx)).
+([require-session](../../libs/verticals/lab/ui/src/client/require-session.tsx)).
 
 ## Soft block vs hard disable (two different denials)
 
@@ -205,7 +205,7 @@ action is unrepresentable by design ([events](../../libs/domain/src/access/event
   `access-client` (the client/dashboard gateways the UI consumes).
 - **infrastructure** — Postgres + in-memory stores, the Supabase auth provider
   (JWT via JWKS), the RPC `ApiClient` gateways (bearer attached).
-- **apps/api** — the procedure registry + pipeline + `composition-root.ts` (the
+- **apps/bison/api** — the procedure registry + pipeline + `composition-root.ts` (the
   only place adapters are wired).
 - **libs/ui** — `dashboard/` (staff) and `client/` (customer self-serve) screens
   - stores; authorization is server-side. The UI only **hides** what would be
@@ -232,7 +232,7 @@ presets are role templates. This is what each preset/template grants:
 - **special states:** anonymous → login/signup only; org-less → create-org or
   await invite; soft-blocked → login but every op 403.
 
-[actor middleware]: ../../apps/api/src/rpc
+[actor middleware]: ../../apps/bison/api/src/rpc
 [value-objects]: ../../libs/domain/src/access/value-objects.ts
 [evaluate]: ../../libs/domain/src/access/policy/evaluate.ts
 [events]: ../../libs/domain/src/access/events.ts

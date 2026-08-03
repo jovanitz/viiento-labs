@@ -21,7 +21,7 @@ is **a new platform adapter + a new composition root** — not a new application
    - `project.json` tagged `layer:app`, tsconfig, Vite config, `index.html`.
    - A `native-*.ts` module that is the _only_ place importing the native SDK
      (real imports go here once installed; ship a typed stub for CI).
-   - A **composition root** that mirrors `apps/web` but swaps in your platform
+   - A **composition root** that mirrors `apps/lab/web` but swaps in your platform
      adapter. Persistence/sync/auth/use-case wiring should be identical.
    - A thin `main.tsx` that builds the runtime and renders the shared UI.
 
