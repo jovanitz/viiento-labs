@@ -1,0 +1,21 @@
+{
+  "name": "lab-app-b",
+  "$schema": "../../../node_modules/nx/schemas/project-schema.json",
+  "sourceRoot": "apps/lab/app-b/src",
+  "projectType": "application",
+  "tags": ["layer:app", "vertical:lab"],
+  "targets": {
+    "lint": {
+      "executor": "nx:run-commands",
+      "options": {
+        "command": "eslint {projectRoot}"
+      }
+    },
+    "typecheck": {
+      "executor": "nx:run-commands",
+      "options": {
+        "command": "tsc -p apps/lab/app-b/tsconfig.app.json --noEmit && tsc -p apps/lab/app-b/tsconfig.spec.json --noEmit"
+      }
+    }
+  }
+}

@@ -1,0 +1,181 @@
+import type { ColumnDef } from '@tanstack/react-table';
+import { MoreHorizontal } from 'lucide-react';
+import {
+  Badge,
+  Button,
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+  type BadgeProps,
+} from '@acme/ui';
+import type {
+  PlanPrice,
+  PlanRow,
+  PlanStatus,
+  PlansActions,
+} from './plans.types';
+
+const statusVariant: Record<PlanStatus, BadgeProps['variant']> = {
+  active: 'success',
+  retired: 'secondary',
+};
+
+/** "$499 MXN/mo" — cents in the VM, formatted at render. */
+const formatPrice = ({ amountCents, currency, interval }: PlanPrice) => {
+  const amount = amountCents / 100;
+  const digits = Number.isInteger(amount) ? 0 : 2;
+  return `$${amount.toFixed(digits)} ${currency}/${interval === 'year' ? 'yr' : 'mo'}`;
+};
+
+/** null = unlimited (ADR-0016). */
+const limit = (n: number | null) => (n === null ? '∞' : String(n));
+
+const PlanCell = ({ plan }: { readonly plan: PlanRow }) => (
+  <div className="flex flex-col">
+    <span className="flex items-center gap-2 font-medium">
+      {plan.displayName}
+      {plan.visibility === 'hidden' ? (
+        <Badge variant="secondary" appearance="soft">
+          Hidden
+        </Badge>
+      ) : null}
+      {plan.isDefault ? (
+        <Badge variant="secondary" appearance="soft">
+          Default
+        </Badge>
+      ) : null}
+    </span>
+    <span className="font-mono text-xs text-muted-foreground">{plan.key}</span>
+  </div>
+);
+
+const PlanActions = ({
+  plan,
+  onEdit,
+  onReset,
+  onRetire,
+  onSetDefault,
+}: { readonly plan: PlanRow } & Pick<
+  PlansActions,
+  'onEdit' | 'onReset' | 'onRetire' | 'onSetDefault'
+>) => {
+  const { planId } = plan;
+  // The default is what NEW orgs get, so only an active + public plan can be it
+  // (a retired plan is closed to new; a hidden plan must never be a default).
+  const canBeDefault =
+    !plan.isDefault && plan.status === 'active' && plan.visibility === 'public';
+  return (
+    <DropdownMenu>
+      <DropdownMenuTrigger asChild>
+        <Button variant="ghost" size="icon" aria-label="Plan actions">
+          <MoreHorizontal />
+        </Button>
+      </DropdownMenuTrigger>
+      <DropdownMenuContent align="end">
+        <DropdownMenuItem onSelect={() => onEdit(planId)}>
+          Edit plan
+        </DropdownMenuItem>
+        {canBeDefault ? (
+          <DropdownMenuItem onSelect={() => onSetDefault(planId)}>
+            Set as default
+          </DropdownMenuItem>
+        ) : null}
+        <DropdownMenuItem onSelect={() => onReset(planId)}>
+          Reset to defaults
+        </DropdownMenuItem>
+        <DropdownMenuSeparator />
+        <DropdownMenuItem
+          onSelect={() => onRetire(planId)}
+          className="text-destructive focus:text-destructive"
+        >
+          Retire plan
+        </DropdownMenuItem>
+      </DropdownMenuContent>
+    </DropdownMenu>
+  );
+};
+
+const baseColumns: ColumnDef<PlanRow>[] = [
+  {
+    accessorKey: 'displayName',
+    header: 'Plan',
+    cell: ({ row }) => <PlanCell plan={row.original} />,
+  },
+  {
+    accessorKey: 'status',
+    header: 'Status',
+    cell: ({ row }) => (
+      <Badge variant={statusVariant[row.original.status]} appearance="soft" dot>
+        {row.original.status}
+      </Badge>
+    ),
+  },
+  {
+    id: 'price',
+    header: 'Price',
+    cell: ({ row }) =>
+      row.original.price ? (
+        <span className="whitespace-nowrap">
+          {formatPrice(row.original.price)}
+        </span>
+      ) : (
+        <span className="text-muted-foreground">No price yet</span>
+      ),
+  },
+  {
+    accessorKey: 'trialMonths',
+    header: 'Trial',
+    cell: ({ row }) =>
+      row.original.trialMonths > 0 ? `${row.original.trialMonths} mo` : '—',
+  },
+  {
+    id: 'limits',
+    header: 'Limits',
+    enableSorting: false,
+    cell: ({ row }) => (
+      <span className="whitespace-nowrap text-muted-foreground">
+        {limit(row.original.maxOrganizationsOwned)} org ·{' '}
+        {limit(row.original.maxMembersPerOrg)} seats
+      </span>
+    ),
+  },
+  {
+    id: 'features',
+    header: 'Features',
+    cell: ({ row }) => row.original.features.length,
+  },
+  { accessorKey: 'subscribers', header: 'Subscribers' },
+];
+
+export const planColumns = ({
+  canManage,
+  onEdit,
+  onReset,
+  onRetire,
+  onSetDefault,
+}: { readonly canManage: boolean } & Pick<
+  PlansActions,
+  'onEdit' | 'onReset' | 'onRetire' | 'onSetDefault'
+>): ColumnDef<PlanRow>[] => {
+  if (!canManage) return baseColumns;
+  return [
+    ...baseColumns,
+    {
+      id: 'actions',
+      header: '',
+      cell: ({ row }) => (
+        <div className="text-right">
+          <PlanActions
+            plan={row.original}
+            onEdit={onEdit}
+            onReset={onReset}
+            onRetire={onRetire}
+            onSetDefault={onSetDefault}
+          />
+        </div>
+      ),
+    },
+  ];
+};

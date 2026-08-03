@@ -1,5 +1,5 @@
 {
-  "$comment": "Machine-readable mirror of @nx/enforce-module-boundaries in eslint.config.mjs. Source of truth for what each layer may import. Keep in sync with eslint.config.mjs; the lint rule is authoritative.",
+  "$comment": "Machine-readable mirror of @nx/enforce-module-boundaries in eslint.config.mjs. Source of truth for what each layer AND each vertical may import. Keep in sync with eslint.config.mjs; the lint rule is authoritative.",
   "version": 1,
   "layers": {
     "shared": {
@@ -44,7 +44,7 @@
     "application": {
       "tag": "layer:application",
       "path": "libs/application",
-      "responsibility": "Use cases, port TYPES, DTOs, and flows (headless controllers + ViewModel/registry). Orchestration only — framework-free.",
+      "responsibility": "Use cases, port TYPES, DTOs, and flows (headless controllers + ViewModel/registry). Orchestration only \u2014 framework-free.",
       "mayImport": [
         "domain",
         "shared"
@@ -92,7 +92,7 @@
     },
     "ui": {
       "tag": "layer:ui",
-      "path": "libs/ui",
+      "path": "libs/ui (shared) + libs/verticals/<vertical>/ui",
       "responsibility": "Design system + feature screens + stores. Components read ViewModels via stores and dispatch actions; orchestration lives in application flows.",
       "mayImport": [
         "application",
@@ -106,7 +106,7 @@
     },
     "app": {
       "tag": "layer:app",
-      "path": "apps/*",
+      "path": "apps/<vertical>/<app>",
       "responsibility": "Composition roots. The only place concrete adapters are wired.",
       "mayImport": [
         "*"
@@ -126,5 +126,48 @@
       "domain",
       "application"
     ]
+  },
+  "verticals": {
+    "$comment": "Second, orthogonal axis (ADR-0019): every project carries one layer:* tag AND one vertical:* tag. Nx requires a dependency to satisfy every matching constraint, so the axes compose. Adding a vertical = one entry here + one depConstraint in eslint.config.mjs.",
+    "core": {
+      "tag": "vertical:core",
+      "path": "libs/<layer>",
+      "responsibility": "Vertical-agnostic engines: access, billing, the design system, the DI seam factory, shared identity chrome.",
+      "mayImport": [
+        "core"
+      ],
+      "forbidden": [
+        "bison",
+        "lab",
+        "any vertical"
+      ],
+      "note": "Shared code may depend only on shared code. Known exception: the Item example still lives in libs/{domain,application,infrastructure}/src/example because the ADR-0007 sync engine is written against it \u2014 see ADR-0019."
+    },
+    "bison": {
+      "tag": "vertical:bison",
+      "path": "libs/verticals/bison/<layer> + apps/bison/<app>",
+      "responsibility": "The Bison vertical (the shipping product): its screens, DI bundle and apps.",
+      "mayImport": [
+        "bison",
+        "core"
+      ],
+      "forbidden": [
+        "lab",
+        "any sibling vertical"
+      ]
+    },
+    "lab": {
+      "tag": "vertical:lab",
+      "path": "libs/verticals/lab/<layer> + apps/lab/<app>",
+      "responsibility": "The reference implementation of a vertical \u2014 the canonical Item slice and the template apps. Never deployed; it is also the canary that keeps core generic.",
+      "mayImport": [
+        "lab",
+        "core"
+      ],
+      "forbidden": [
+        "bison",
+        "any sibling vertical"
+      ]
+    }
   }
 }

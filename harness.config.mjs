@@ -29,6 +29,19 @@ export default {
   },
 
   /**
+   * `perf` sensor — which bundles are worth a baseline.
+   *
+   * Only the SHIPPING apps of real verticals (ADR-0019). The `lab` vertical is
+   * deliberately absent: it is the reference implementation, never deployed, so
+   * measuring it would report weight no user ever downloads. A new vertical is
+   * one line here, not a sensor edit. `--app=<name>` still overrides for a
+   * one-off measurement of anything, lab included.
+   */
+  perf: {
+    apps: ['bison-dashboard'],
+  },
+
+  /**
    * `screens` sensor — the two-phase, zero-rework view workflow (docs/ai/screens.md).
    * A `*.view.tsx` is presentational (a fn of ViewModel + actions) and carries a
    * `@phase draft|approved` tag the harness reads. draft = UI design only;
@@ -37,7 +50,7 @@ export default {
    */
   screens: {
     viewSuffix: '.view.tsx',
-    scan: ['libs/ui/src'],
+    scan: ['libs/ui/src', 'libs/verticals'],
     requireStory: true,
     requireContainerWhenApproved: true,
     presentationalBannedImports: [
@@ -66,8 +79,8 @@ export default {
    *                        field there must be `z.string().min(1)`, not optional.
    */
   operations: {
-    reasonScan: ['libs/ui/src', 'apps'],
-    reasonScanExclude: ['apps/api'],
+    reasonScan: ['libs/ui/src', 'libs/verticals', 'apps'],
+    reasonScanExclude: ['apps/bison/api'],
     reasonSchemaScan: ['libs/application/src/flows'],
   },
 

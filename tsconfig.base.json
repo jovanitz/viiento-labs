@@ -23,6 +23,8 @@
     "baseUrl": ".",
     "paths": {
       "@acme/application": ["libs/application/src/index.ts"],
+      "@acme/bison-ui": ["libs/verticals/bison/ui/src/index.ts"],
+      "@acme/lab-ui": ["libs/verticals/lab/ui/src/index.ts"],
       "@acme/domain": ["libs/domain/src/index.ts"],
       "@acme/infrastructure": ["libs/infrastructure/src/index.ts"],
       "@acme/infrastructure-node": ["libs/infrastructure/src/node.ts"],

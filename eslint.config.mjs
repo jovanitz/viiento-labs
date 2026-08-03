@@ -108,6 +108,28 @@ export default [
               sourceTag: 'layer:app',
               onlyDependOnLibsWithTags: ['*'],
             },
+
+            // ---- The `vertical:*` axis (ADR-0019) ----------------------
+            // Orthogonal to `layer:*`: every project carries one tag of each.
+            // Nx requires a dependency to satisfy EVERY matching constraint,
+            // so the two axes compose with no matrix to maintain.
+            //
+            // Shared code may depend only on shared code — the line ADR-0017
+            // asked for and could not express: anything vertical-specific that
+            // leaks into `libs/*` now fails lint instead of waiting on review.
+            {
+              sourceTag: 'vertical:core',
+              onlyDependOnLibsWithTags: ['vertical:core'],
+            },
+            // A vertical sees itself and the shared engines — never a sibling.
+            {
+              sourceTag: 'vertical:bison',
+              onlyDependOnLibsWithTags: ['vertical:bison', 'vertical:core'],
+            },
+            {
+              sourceTag: 'vertical:lab',
+              onlyDependOnLibsWithTags: ['vertical:lab', 'vertical:core'],
+            },
           ],
         },
       ],

@@ -20,7 +20,7 @@ import type {
   AccessAuditEventType,
   AccessPresetName,
 } from '@acme/domain';
-import type { ApiProcedure } from '../../../apps/api/src/rpc/procedure';
+import type { ApiProcedure } from '../../../apps/bison/api/src/rpc/procedure';
 
 /**
  * Human descriptions keyed by the code's own unions. Exhaustive Records:

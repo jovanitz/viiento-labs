@@ -4,7 +4,7 @@ import type { IdentityProvisioner } from '@acme/application';
 /**
  * Server-only `IdentityProvisioner`: creates a confirmed Supabase identity via
  * the GoTrue admin API. Requires the project's SECRET key, so it must only ever
- * be wired in a Node composition root (apps/api) — never the browser. GoTrue
+ * be wired in a Node composition root (apps/bison/api) — never the browser. GoTrue
  * answers 422 when the email already exists; we surface that distinctly so
  * activation refuses rather than risk resetting someone else's password.
  */

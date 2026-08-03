@@ -1,0 +1,27 @@
+{
+  "name": "bison-api",
+  "$schema": "../../../node_modules/nx/schemas/project-schema.json",
+  "sourceRoot": "apps/bison/api/src",
+  "projectType": "application",
+  "tags": ["layer:app", "vertical:bison"],
+  "targets": {
+    "serve": {
+      "executor": "nx:run-commands",
+      "options": {
+        "command": "tsx watch apps/bison/api/src/main.ts"
+      }
+    },
+    "lint": {
+      "executor": "nx:run-commands",
+      "options": {
+        "command": "eslint {projectRoot}"
+      }
+    },
+    "typecheck": {
+      "executor": "nx:run-commands",
+      "options": {
+        "command": "tsc -p apps/bison/api/tsconfig.app.json --noEmit && tsc -p apps/bison/api/tsconfig.spec.json --noEmit"
+      }
+    }
+  }
+}

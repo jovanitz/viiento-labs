@@ -56,43 +56,22 @@ export * from './design-system/notifications/notifications-menu';
 export * from './design-system/toast/toaster';
 export * from './design-system/bottom-nav/bottom-nav';
 export * from './design-system/app-shell/app-shell';
+// The named spacing rhythm (tight/cozy/field/group/section) the lint rule
+// points at — a vertical reaches it through this barrel, not a relative path.
+export * from './design-system/stack/stack';
 
-// Dependency-injection seam
+// Dependency-injection seam — the generic factory every vertical instantiates
+// with its OWN bundle. Core names no vertical's use cases (ADR-0019).
 export * from './di/use-cases-context';
 
 // Runtime introspection bridge (dev-only; guard the call with import.meta.env.DEV)
 export * from './debug/debug-bridge';
 
-// Example feature
-export * from './example/use-items';
-export * from './example/item-form';
-export * from './example/item-screen';
+// Shared identity chrome: the same mechanism for every vertical, so it belongs
+// here rather than in one of them. Takes its use cases as props — core cannot
+// read a vertical's seam.
+export * from './identity/activate-invitation-screen';
 
-// Access: functional login/access skeleton (product screens replace it)
-export * from './access/access-login-screen';
-
-// Staff dashboard: login-only auth gate + staff/customer directory tables
-export * from './dashboard/login-screen';
-export * from './dashboard/require-admin';
-export * from './dashboard/dashboard-screen';
-// Bison-manager giro: the app shell + the wired Directory container
-// (ADR-0017 giro isolation, ADR-0018 billing coverage).
-export * from './bison-manager/dashboard/dashboard.shell';
-export * from './bison-manager/dashboard/directory/directory.container';
-export * from './bison-manager/dashboard/plans/plans.container';
-export * from './bison-manager/dashboard/roles/roles.container';
-export * from './bison-manager/dashboard/roles/templates.container';
-export * from './bison-manager/dashboard/settings/settings.container';
-export * from './bison-manager/dashboard/audit/audit.container';
-export * from './bison-manager/dashboard/permissions/permissions.container';
-export * from './bison-manager/dashboard/org-detail/org-detail.container';
-export * from './dashboard/invitations/invite-member-form';
-export * from './dashboard/invitations/activate-invitation-screen';
-export * from './dashboard/permissions/manage-permissions-form';
-export * from './dashboard/block/block-buttons';
-
-// Client app: customer-facing self-serve (signup, home, org switcher)
-export * from './client/client-login-screen';
-export * from './client/client-home-screen';
-export * from './client/require-session';
-export * from './client/manage-org/manage-org-section';
+// NOTE: every feature screen now lives in its vertical — `@acme/bison-ui` and
+// `@acme/lab-ui`. This barrel ships the design system, the DI mechanism and
+// shared chrome; nothing that belongs to one product.

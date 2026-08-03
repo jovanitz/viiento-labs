@@ -120,7 +120,7 @@ describe('ADR-0016: plans/billing actions in the access vocabulary', () => {
 
 // A second, structurally-different vocabulary — abstract on purpose, NOT this
 // app's giro — proving the generic core serves any `AccessConfig<Action,
-// Preset>`. A real app's vocabulary lives in that app (see apps/app-b), never
+// Preset>`. A real app's vocabulary lives in that app (see apps/lab/app-b), never
 // in the shared domain.
 type OtherAction = 'widget.read' | 'widget.write' | 'widget.purge';
 type OtherPreset = 'role-a' | 'role-b';

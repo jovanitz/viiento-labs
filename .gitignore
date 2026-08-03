@@ -12,11 +12,11 @@ coverage
 .vite
 vite.config.*.timestamp*
 # Capacitor / native
-apps/mobile/ios/App/Pods
-apps/mobile/android/.gradle
-apps/mobile/android/app/build
+apps/lab/mobile/ios/App/Pods
+apps/lab/mobile/android/.gradle
+apps/lab/mobile/android/app/build
 # Tauri
-apps/desktop/src-tauri/target
+apps/lab/desktop/src-tauri/target
 
 # Playwright
 test-results

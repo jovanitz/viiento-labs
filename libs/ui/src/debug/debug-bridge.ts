@@ -1,5 +1,4 @@
 import type { QueryClient } from '@tanstack/react-query';
-import type { AppUseCases } from '../di/use-cases-context';
 
 /**
  * Runtime introspection bridge (DEV ONLY).
@@ -66,7 +65,15 @@ const readQueries = (queryClient: QueryClient): RuntimeSnapshot['queries'] => {
  * is injectable so it can be unit-tested without a real window.
  */
 export const installDebugBridge = (
-  deps: { queryClient: QueryClient; useCases: AppUseCases },
+  deps: {
+    queryClient: QueryClient;
+    /**
+     * Any vertical's DI bundle. The bridge only reports which bundles are
+     * wired (`Object.keys`), so it stays structural rather than naming a
+     * vertical's use cases from shared code (ADR-0019).
+     */
+    useCases: Readonly<Record<string, unknown>>;
+  },
   target: Target = globalThis as unknown as Target,
 ): DebugBridge => {
   const events: RuntimeRecord[] = [];

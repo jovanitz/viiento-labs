@@ -1,11 +1,11 @@
 <!-- GENERATED FILE — do not edit by hand.
-     Source of truth: the code (libs/domain/src/access, apps/api registry,
+     Source of truth: the code (libs/domain/src/access, apps/bison/api registry,
      supabase/config.toml). Regenerate: pnpm harness rules --write
      The gate fails while this file is stale (pnpm harness rules). -->
 
 # Access — business rules
 
-> Covers the EXISTING giro's API (`apps/api`) and vocabulary — each giro gets
+> Covers the EXISTING giro's API (`apps/bison/api`) and vocabulary — each giro gets
 > its own generated rules doc (ADR-0017).
 
 Human-readable representation of the authorization system (ADR-0010). Every

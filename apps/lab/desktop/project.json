@@ -1,0 +1,28 @@
+{
+  "name": "lab-desktop",
+  "$schema": "../../../node_modules/nx/schemas/project-schema.json",
+  "sourceRoot": "apps/lab/desktop/src",
+  "projectType": "application",
+  "tags": ["layer:app", "vertical:lab"],
+  "targets": {
+    "lint": {
+      "executor": "nx:run-commands",
+      "options": {
+        "command": "eslint {projectRoot}"
+      }
+    },
+    "typecheck": {
+      "executor": "nx:run-commands",
+      "options": {
+        "command": "tsc -p apps/lab/desktop/tsconfig.app.json --noEmit"
+      }
+    },
+    "tauri:dev": {
+      "executor": "nx:run-commands",
+      "options": {
+        "command": "tauri dev",
+        "cwd": "apps/lab/desktop"
+      }
+    }
+  }
+}

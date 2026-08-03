@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import type { QueryClient } from '@tanstack/react-query';
 import { installDebugBridge, type DebugBridge } from './debug-bridge';
-import type { AppUseCases } from '../di/use-cases-context';
+import type { LabUseCases } from '../di/lab-use-cases';
 
 const fakeQueryClient = (): QueryClient =>
   ({
@@ -20,8 +20,8 @@ const fakeQueryClient = (): QueryClient =>
     }),
   }) as unknown as QueryClient;
 
-const fakeUseCases = (): AppUseCases =>
-  ({ items: {} }) as unknown as AppUseCases;
+const fakeUseCases = (): LabUseCases =>
+  ({ items: {} }) as unknown as LabUseCases;
 
 describe('installDebugBridge', () => {
   it('installs __app__ on the target and snapshots queries + use cases', () => {

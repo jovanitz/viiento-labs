@@ -210,7 +210,7 @@ timebox = "720h"
 inactivity_timeout = "720h"
 
 # Every password check is reported to the API, which audits failed attempts
-# (login.failed) — see apps/api/src/identity/auth-hook.ts. The secret is the
+# (login.failed) — see apps/bison/api/src/identity/auth-hook.ts. The secret is the
 # public local default; production configures its own pair.
 [auth.hook.password_verification_attempt]
 enabled = true

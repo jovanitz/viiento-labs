@@ -1,0 +1,21 @@
+{
+  "name": "lab-ui",
+  "$schema": "../../../../node_modules/nx/schemas/project-schema.json",
+  "sourceRoot": "libs/verticals/lab/ui/src",
+  "projectType": "library",
+  "tags": ["layer:ui", "vertical:lab"],
+  "targets": {
+    "lint": {
+      "executor": "nx:run-commands",
+      "options": {
+        "command": "eslint {projectRoot}"
+      }
+    },
+    "typecheck": {
+      "executor": "nx:run-commands",
+      "options": {
+        "command": "tsc -p libs/verticals/lab/ui/tsconfig.lib.json --noEmit"
+      }
+    }
+  }
+}

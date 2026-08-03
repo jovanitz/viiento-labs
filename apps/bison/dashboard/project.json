@@ -1,0 +1,21 @@
+{
+  "name": "bison-dashboard",
+  "$schema": "../../../node_modules/nx/schemas/project-schema.json",
+  "sourceRoot": "apps/bison/dashboard/src",
+  "projectType": "application",
+  "tags": ["layer:app", "vertical:bison"],
+  "targets": {
+    "lint": {
+      "executor": "nx:run-commands",
+      "options": {
+        "command": "eslint {projectRoot}"
+      }
+    },
+    "typecheck": {
+      "executor": "nx:run-commands",
+      "options": {
+        "command": "tsc -p apps/bison/dashboard/tsconfig.app.json --noEmit"
+      }
+    }
+  }
+}

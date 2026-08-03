@@ -1,84 +1,56 @@
 import { createContext, useContext, type ReactNode } from 'react';
-import type {
-  AccessClientUseCases,
-  AccountAdminGateway,
-  AuditGateway,
-  BillingGateway,
-  SessionsGateway,
-  SettingsGateway,
-  BlockUseCases,
-  CoverageReader,
-  DirectoryUseCases,
-  InvitationsUseCases,
-  ItemUseCases,
-  MembersUseCases,
-  OrgDetailGateway,
-  OrgsUseCases,
-  RolesGateway,
-} from '@acme/application';
 
 /**
- * The UI's dependency-injection seam.
+ * The UI's dependency-injection seam — the MECHANISM, and nothing else.
  *
  * The UI layer is forbidden (by the Nx boundary rules) from importing
  * infrastructure or platform. Instead it declares *what* it needs — a bundle of
  * use cases — and reads them from React context. Each app's composition root
- * builds the real (or mock) use cases and provides them here. This is how the
- * very same `ItemScreen` renders against live adapters in `apps/web` and
- * against fakes in tests, with no code change.
+ * builds the real (or mock) use cases and provides them here, so the very same
+ * screen renders against live adapters in an app and against fakes in tests,
+ * with no code change.
+ *
+ * This factory is generic on purpose ([ADR-0019](../../../../docs/adr/0019-vertical-tag-axis.md)).
+ * It used to export one concrete `AppUseCases` type listing every feature of
+ * every app, which made shared code name one vertical's use cases — and forced
+ * every field to be optional, since no single app wired them all. Two costs
+ * followed: an app had to stub bundles it never rendered just to satisfy the
+ * contract, and screens defended against `undefined` on bundles their own app
+ * always wires.
+ *
+ * Now each vertical calls this once and declares its OWN bundle, with required
+ * fields. Core learns nothing about anyone's features, and a vertical's screens
+ * get a bundle that cannot be half-wired.
+ *
+ * ```ts
+ * export const { UseCasesProvider, useUseCases } =
+ *   createUseCasesSeam<BisonUseCases>();
+ * ```
  */
-export type AppUseCases = {
-  readonly items: ItemUseCases;
-  /** Present once the app wires auth (web today; mobile/desktop pending). */
-  readonly access?: AccessClientUseCases;
-  /** Present in the staff dashboard: the staff/customer directory reads. */
-  readonly directory?: DirectoryUseCases;
-  /** Present in the staff dashboard: per-account billing coverage (ADR-0018). */
-  readonly coverage?: CoverageReader;
-  /** Present in the staff dashboard: issue invitations + activate them. */
-  readonly invitations?: InvitationsUseCases;
-  /** Present in the staff dashboard: list members + edit their permissions. */
-  readonly members?: MembersUseCases;
-  /** Present in the staff dashboard: soft-block orgs / identities. */
-  readonly block?: BlockUseCases;
-  /** Present in the staff dashboard: manage dynamic roles (ADR-0011). */
-  readonly roles?: RolesGateway;
-  /** Present in the staff dashboard: account lifecycle (disable/enable/promote). */
-  readonly accounts?: AccountAdminGateway;
-  /** Present in the staff dashboard: read the security audit trail. */
-  readonly audit?: AuditGateway;
-  /** Present in the staff dashboard: list + revoke a member's sessions. */
-  readonly sessions?: SessionsGateway;
-  /** Present in the staff dashboard: read + edit the session policy. */
-  readonly settings?: SettingsGateway;
-  /** Present in the client app: the caller's orgs + switching between them. */
-  readonly orgs?: OrgsUseCases;
-  /** Present in the staff dashboard: the org drill-down (summary + roster). */
-  readonly orgDetail?: OrgDetailGateway;
-  /** Present in the staff dashboard: billing summary + levers + ledger (ADR-0018). */
-  readonly billing?: BillingGateway;
-};
+export const createUseCasesSeam = <T,>() => {
+  const Context = createContext<T | null>(null);
 
-const UseCasesContext = createContext<AppUseCases | null>(null);
+  const UseCasesProvider = ({
+    useCases,
+    children,
+  }: {
+    useCases: T;
+    children: ReactNode;
+  }) => <Context.Provider value={useCases}>{children}</Context.Provider>;
 
-export const UseCasesProvider = ({
-  useCases,
-  children,
-}: {
-  useCases: AppUseCases;
-  children: ReactNode;
-}) => (
-  <UseCasesContext.Provider value={useCases}>
-    {children}
-  </UseCasesContext.Provider>
-);
+  /**
+   * Throws rather than returning a Result: a missing provider is a wiring
+   * mistake in the composition root, not an expected runtime failure.
+   */
+  const useUseCases = (): T => {
+    const ctx = useContext(Context);
+    if (!ctx) {
+      throw new Error(
+        'useUseCases must be used within a <UseCasesProvider>. Wire it in your composition root.',
+      );
+    }
+    return ctx;
+  };
 
-export const useUseCases = (): AppUseCases => {
-  const ctx = useContext(UseCasesContext);
-  if (!ctx) {
-    throw new Error(
-      'useUseCases must be used within a <UseCasesProvider>. Wire it in your composition root.',
-    );
-  }
-  return ctx;
+  return { UseCasesProvider, useUseCases };
 };

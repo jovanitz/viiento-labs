@@ -1,0 +1,28 @@
+{
+  "name": "lab-mobile",
+  "$schema": "../../../node_modules/nx/schemas/project-schema.json",
+  "sourceRoot": "apps/lab/mobile/src",
+  "projectType": "application",
+  "tags": ["layer:app", "vertical:lab"],
+  "targets": {
+    "lint": {
+      "executor": "nx:run-commands",
+      "options": {
+        "command": "eslint {projectRoot}"
+      }
+    },
+    "typecheck": {
+      "executor": "nx:run-commands",
+      "options": {
+        "command": "tsc -p apps/lab/mobile/tsconfig.app.json --noEmit"
+      }
+    },
+    "cap:sync": {
+      "executor": "nx:run-commands",
+      "options": {
+        "command": "cap sync",
+        "cwd": "apps/lab/mobile"
+      }
+    }
+  }
+}

@@ -10,5 +10,7 @@ export default [
   'libs/infrastructure/vitest.config.ts',
   'libs/platform/vitest.config.ts',
   'libs/ui/vitest.config.ts',
-  'apps/api/vitest.config.ts',
+  'libs/verticals/bison/ui/vitest.config.ts',
+  'libs/verticals/lab/ui/vitest.config.ts',
+  'apps/bison/api/vitest.config.ts',
 ];

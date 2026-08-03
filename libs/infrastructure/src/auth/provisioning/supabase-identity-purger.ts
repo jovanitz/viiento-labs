@@ -4,7 +4,7 @@ import type { IdentityPurger } from '@acme/application';
 /**
  * Server-only `IdentityPurger`: erases a Supabase identity via the GoTrue admin
  * API. Needs the project's SECRET key, so it may only be wired in a Node
- * composition root (apps/api) — never the browser.
+ * composition root (apps/bison/api) — never the browser.
  *
  * Fails CLOSED on every non-2xx: nothing is reported as deleted unless GoTrue
  * says it deleted it. A 404 is a failure too, not a silent success — being

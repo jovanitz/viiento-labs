@@ -56,7 +56,7 @@ export const makeRoleId = (raw: string): Result<RoleId, AccessDomainError> =>
  * reference it) — they never bypass it.
  *
  * ADR-0017: this is the EXISTING giro's vocabulary, not "the platform's" —
- * each giro injects its own (`AccessConfig`, see `apps/app-b/src/access.ts`);
+ * each giro injects its own (`AccessConfig`, see `apps/lab/app-b/src/access.ts`);
  * per-giro injection through the application slices = ADR-0015 fase 0b
  * (pending until a second giro needs it).
  */
