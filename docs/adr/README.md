@@ -23,3 +23,4 @@ consequences. They are immutable once accepted; supersede rather than edit.
 | 0016 | [Plans, subscriptions & entitlements — billing as its own bounded context](0016-plans-subscriptions-entitlements.md) |
 | 0017 | [Business verticals (giros) fully isolated — A never knows B exists](0017-giro-isolation.md)                         |
 | 0018 | [Payments as a ledger — manual-billing lifecycle, derived coverage](0018-payments-ledger-manual-billing.md)          |
+| 0019 | [A `vertical:*` tag axis makes vertical isolation a lint error](0019-vertical-tag-axis.md)                           |
