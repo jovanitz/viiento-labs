@@ -12,7 +12,12 @@
  *
  * v1 supports single-word, lowercase feature names (e.g. order, invoice, product).
  *
- * Usage: node scripts/harness/generators/generate-feature.mjs <name> [--root=<dir>]
+ * The UI slice lands in a VERTICAL (ADR-0019) — `--vertical=` picks which one,
+ * default `bison`. domain/application/infrastructure still land in the shared
+ * libs, mirroring where the `Item` template itself still lives.
+ *
+ * Usage: node scripts/harness/generators/generate-feature.mjs <name>
+ *                                       [--vertical=bison] [--root=<dir>]
  */
 import {
   readdirSync,
@@ -31,6 +36,8 @@ const getArg = (name) => {
 };
 const ROOT = path.resolve(getArg('root') || process.cwd());
 const name = args.find((a) => !a.startsWith('--'));
+const VERTICAL = getArg('vertical') || 'bison';
+const verticalUi = `libs/verticals/${VERTICAL}/ui/src`;
 
 const emit = (obj, code) => {
   process.stdout.write(JSON.stringify(obj, null, 2) + '\n');
@@ -65,7 +72,9 @@ const transformBasename = (b) => b.replaceAll('item', name);
 const dirJobs = [
   ['libs/domain/src/example', `libs/domain/src/${name}`],
   ['libs/application/src/example', `libs/application/src/${name}`],
-  ['libs/ui/src/example', `libs/ui/src/${name}`],
+  // The canonical Item UI now lives in the lab vertical; the copy lands in the
+  // target vertical, never in the shared lib.
+  ['libs/verticals/lab/ui/src/example', `${verticalUi}/${name}`],
 ];
 const fileJobs = [
   [
@@ -134,7 +143,7 @@ const wired = [
     `export * from './${name}/errors';`,
     `export * from './${name}/use-cases';`,
   ]),
-  appendExports('libs/ui/src/index.ts', [
+  appendExports(`libs/verticals/${VERTICAL}/ui/src/index.ts`, [
     `export * from './${name}/use-${name}s';`,
     `export * from './${name}/${name}-form';`,
     `export * from './${name}/${name}-screen';`,
@@ -153,11 +162,11 @@ emit(
     created,
     wired,
     nextSteps: [
-      `Extend AppUseCases in libs/ui/src/di/use-cases-context.tsx: import type { ${Pascal}UseCases } from '@acme/application' and add 'readonly ${name}s: ${Pascal}UseCases;'.`,
-      `In the composition roots of the OWNING giro's apps only (ADR-0017 — a giro-specific feature is never wired into another giro's apps; giro UI goes under libs/ui/src/<giro>/), build the use cases with make${Pascal}UseCases({ repository, clock, ids, events, logger }) and add '${name}s' to the returned useCases (mirror how 'items' is wired). Choose a repository adapter (e.g. createInMemory${Pascal}Repository for a quick start, or the Dexie/offline stack like items).`,
+      `Extend the ${VERTICAL} DI bundle in libs/verticals/${VERTICAL}/ui/src/di.ts: import type { ${Pascal}UseCases } from '@acme/application' and add 'readonly ${name}s: ${Pascal}UseCases;'. Core's seam is generic (ADR-0019) — never add a feature to it.`,
+      `In the composition roots of apps/${VERTICAL}/* ONLY (ADR-0017/ADR-0019 — a vertical's feature is never wired into another's, and the boundary rule now fails the build if you try), build the use cases with make${Pascal}UseCases({ repository, clock, ids, events, logger }) and add '${name}s' to the returned useCases. Choose a repository adapter (e.g. createInMemory${Pascal}Repository for a quick start, or the Dexie/offline stack like items).`,
       `Replace the copied example logic with the real ${Pascal} domain rules, then run 'pnpm harness quality' (and 'pnpm harness gaps') to verify the slice is green.`,
     ],
-    note: 'domain/application/infrastructure should compile and test on their own; the UI typecheck stays red until AppUseCases is extended (step 1).',
+    note: `domain/application/infrastructure should compile and test on their own; ${VERTICAL}-ui's typecheck stays red until its DI bundle is extended (step 1).`,
     scope:
       'This scaffolds a CRUD ENTITY feature (Item-shaped: an entity with a repository and create/rename/archive use cases). It is the wrong tool for cross-cutting concerns like authentication, sessions, or permissions — build those by hand following docs/ai/workflow.md (port type first), and run /security-review for sensitive ones.',
   },

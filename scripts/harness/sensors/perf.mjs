@@ -9,7 +9,7 @@
  *      reports ops/sec, mean and noise (rme) per case.
  * Prints JSON to stdout.
  *
- * Usage: node scripts/harness/sensors/perf.mjs [--app=web] [--skip-build]
+ * Usage: node scripts/harness/sensors/perf.mjs [--app=<name>] [--skip-build]
  *                                             [--no-bundle] [--no-bench] [--root=<dir>]
  */
 import { readdirSync, readFileSync, statSync, existsSync } from 'node:fs';
@@ -17,6 +17,7 @@ import { gzipSync } from 'node:zlib';
 import { spawnSync } from 'node:child_process';
 import { tmpdir } from 'node:os';
 import path from 'node:path';
+import harnessConfig from '../../../harness.config.mjs';
 
 const args = process.argv.slice(2);
 const has = (f) => args.includes(`--${f}`);
@@ -25,8 +26,17 @@ const getArg = (name) => {
   return hit ? hit.slice(name.length + 3) : undefined;
 };
 const ROOT = path.resolve(getArg('root') || process.cwd());
-const APP = getArg('app') || 'web';
-const OUT_DIR = path.resolve(ROOT, getArg('outDir') || `dist/apps/${APP}`);
+
+/**
+ * Which bundles to measure. `--app=<name>` measures exactly that one (any app,
+ * lab included); otherwise the shipping apps of the real verticals, declared in
+ * harness.config (ADR-0019) so a new vertical never means editing this sensor.
+ */
+const APPS = getArg('app')
+  ? [getArg('app')]
+  : (harnessConfig.perf?.apps ?? ['bison-dashboard']);
+const outDirOf = (app) =>
+  path.resolve(ROOT, getArg('outDir') || `dist/apps/${app}`);
 const bin = (name) => path.join(ROOT, 'node_modules', '.bin', name);
 const rel = (f) => path.relative(ROOT, f).split(path.sep).join('/');
 
@@ -42,8 +52,9 @@ function walk(dir) {
 }
 
 // ---- A) bundle ------------------------------------------------------------
-function measureBundle() {
-  if (has('no-bundle')) return { skipped: 'disabled (--no-bundle)' };
+function measureBundle(APP) {
+  if (has('no-bundle')) return { app: APP, skipped: 'disabled (--no-bundle)' };
+  const OUT_DIR = outDirOf(APP);
 
   let built = false;
   if (!has('skip-build')) {
@@ -144,14 +155,14 @@ function measureBench() {
   return { files };
 }
 
-const bundle = measureBundle();
+const bundles = APPS.map((app) => measureBundle(app));
 const bench = measureBench();
 
 const report = {
   tool: 'perf',
   generatedAt: new Date().toISOString(),
-  ok: !bundle.error && !bench.error,
-  bundle,
+  ok: !bundles.some((b) => b.error) && !bench.error,
+  bundles,
   bench,
 };
 

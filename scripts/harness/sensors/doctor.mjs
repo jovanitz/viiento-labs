@@ -15,6 +15,7 @@ import { spawnSync } from 'node:child_process';
 import path from 'node:path';
 import { TOOLS } from '../manifest.mjs';
 import harnessConfig from '../../../harness.config.mjs';
+import { discoverProjects, countProjectManifests } from '../project-graph.mjs';
 
 const args = process.argv.slice(2);
 const getArg = (n) => {
@@ -221,6 +222,88 @@ if (existsSync(skillsDir)) {
       'add a `pnpm harness <cmd>` the skill wraps, so it is not Claude-only',
     );
   }
+}
+
+// N) SENSOR COVERAGE — does the harness still SEE what it is meant to police?
+//
+// Every check above proves wiring: the hook exists, the script is there, the
+// registry matches. None of it proves a sensor still reaches any code. That
+// gap is not hypothetical: after ADR-0019 moved every app and vertical lib,
+// `impact` kept returning green while classifying 10 of 16 projects as
+// "unknown" — which downstream reads as "no impact", not "not found". A sensor
+// that scans nothing is indistinguishable from one that finds nothing, and the
+// silent version of that ambiguity is the dangerous one.
+//
+// The floor checked here is ZERO, deliberately. A percentage drop against a
+// baseline fires every time code is legitimately deleted, and a noisy check is
+// one people learn to skip.
+
+/** Configured scan roots, by the config key that owns them. */
+const SCAN_ROOTS = {
+  'screens.scan': harnessConfig.screens?.scan,
+  sourceRoots: harnessConfig.sourceRoots,
+  'operations.reasonScan': harnessConfig.operations?.reasonScan,
+  'operations.reasonSchemaScan': harnessConfig.operations?.reasonSchemaScan,
+  'purity.layers': harnessConfig.purity?.layers,
+};
+
+/** Source files under a root — the unit every file-walking sensor consumes. */
+const countSourceFiles = (relRoot) => {
+  const abs = path.join(ROOT, relRoot);
+  if (!existsSync(abs)) return null; // missing root: distinct from empty
+  let total = 0;
+  const walk = (dir, depth) => {
+    if (depth > 8) return;
+    for (const entry of readdirSync(dir, { withFileTypes: true })) {
+      if (entry.name === 'node_modules' || entry.name === 'dist') continue;
+      const next = path.join(dir, entry.name);
+      if (entry.isDirectory()) walk(next, depth + 1);
+      else if (/\.(ts|tsx|mjs|js)$/.test(entry.name)) total += 1;
+    }
+  };
+  walk(abs, 0);
+  return total;
+};
+
+for (const [key, roots] of Object.entries(SCAN_ROOTS)) {
+  if (!Array.isArray(roots)) continue;
+  for (const root of roots) {
+    const count = countSourceFiles(root);
+    check(
+      `scan root "${root}" (${key}) resolves to source`,
+      count !== null && count > 0,
+      count === null
+        ? `path does not exist — the sensor silently scans nothing. Did it move?`
+        : count === 0
+          ? `path exists but holds no source files — stale root?`
+          : '',
+    );
+  }
+}
+
+// Project discovery: compare the walker against an independently-counted
+// ground truth, so a bug in the walker cannot conceal itself.
+const projects = discoverProjects(ROOT);
+const manifestCount = countProjectManifests(ROOT);
+check(
+  'project discovery finds every project.json',
+  projects.length === manifestCount,
+  projects.length === manifestCount
+    ? ''
+    : `found ${projects.length} of ${manifestCount} manifests — discovery is not reaching them all (nesting depth?)`,
+);
+
+// Both tag axes are mandatory: an untagged project matches no depConstraint and
+// so escapes boundary enforcement entirely (ADR-0009 layer, ADR-0019 vertical).
+for (const axis of ['layer', 'vertical']) {
+  const untagged = projects.filter((p) => p[axis] === 'unknown');
+  check(
+    `every project carries a ${axis}:* tag`,
+    untagged.length === 0,
+    untagged.length
+      ? `untagged: ${untagged.map((p) => p.name).join(', ')}`
+      : '',
+  );
 }
 
 const failed = checks.filter((c) => !c.ok);

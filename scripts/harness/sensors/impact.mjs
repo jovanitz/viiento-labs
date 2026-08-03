@@ -10,9 +10,10 @@
  *   No flags  → impact of the current working-tree changes vs the Nx base.
  *   --base/--head → impact of a commit range (e.g. a PR).
  */
-import { readdirSync, readFileSync, existsSync, writeSync } from 'node:fs';
+import { existsSync, writeSync } from 'node:fs';
 import { spawnSync } from 'node:child_process';
 import path from 'node:path';
+import { discoverProjects } from '../project-graph.mjs';
 
 const args = process.argv.slice(2);
 const getArg = (name) => {
@@ -51,36 +52,36 @@ try {
   fail('Could not parse nx output as JSON.');
 }
 
-// 2) Map every project name → its layer tag (read from project.json files).
-const layerByName = {};
-for (const group of ['libs', 'apps']) {
-  const dir = path.join(ROOT, group);
-  if (!existsSync(dir)) continue;
-  for (const entry of readdirSync(dir)) {
-    const pj = path.join(dir, entry, 'project.json');
-    if (!existsSync(pj)) continue;
-    try {
-      const j = JSON.parse(readFileSync(pj, 'utf8'));
-      const tag = (j.tags || []).find((t) => t.startsWith('layer:'));
-      layerByName[j.name || entry] = tag
-        ? tag.slice('layer:'.length)
-        : 'unknown';
-    } catch {
-      /* skip malformed */
-    }
-  }
-}
+// 2) Map every project name → its layer + vertical tags (from project.json).
+//    Discovery lives in ../project-graph.mjs so `doctor` can assert it still
+//    finds every project — see ADR-0019 and the note in that module.
+const tagsByName = Object.fromEntries(
+  discoverProjects(ROOT).map((p) => [p.name, p]),
+);
 
 // 3) Classify affected projects.
 const affected = affectedNames.map((name) => {
-  const layer = layerByName[name] || 'unknown';
-  return { project: name, layer, type: layer === 'app' ? 'app' : 'lib' };
+  const { layer, vertical } = tagsByName[name] || {
+    layer: 'unknown',
+    vertical: 'unknown',
+  };
+  return {
+    project: name,
+    layer,
+    vertical,
+    type: layer === 'app' ? 'app' : 'lib',
+  };
 });
 const platformsAffected = affected
   .filter((a) => a.type === 'app')
   .map((a) => a.project);
 const byLayer = affected.reduce(
   (acc, a) => ((acc[a.layer] = (acc[a.layer] || 0) + 1), acc),
+  {},
+);
+/** Which worlds a change reaches — `core` means every vertical (ADR-0019). */
+const byVertical = affected.reduce(
+  (acc, a) => ((acc[a.vertical] = (acc[a.vertical] || 0) + 1), acc),
   {},
 );
 
@@ -104,6 +105,7 @@ const report = {
     affectedCount: affected.length,
     platformsAffected,
     byLayer,
+    byVertical,
     riskHint,
   },
   affected: affected.sort(

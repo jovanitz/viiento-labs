@@ -36,7 +36,7 @@ import harnessConfig from '../../../harness.config.mjs';
 
 const cfg = harnessConfig.operations ?? {};
 const REASON_SCAN = cfg.reasonScan ?? ['libs/ui/src', 'apps'];
-const REASON_SCAN_EXCLUDE = cfg.reasonScanExclude ?? ['apps/api'];
+const REASON_SCAN_EXCLUDE = cfg.reasonScanExclude ?? ['apps/bison/api'];
 const SCHEMA_SCAN = cfg.reasonSchemaScan ?? ['libs/application/src/flows'];
 
 const args = process.argv.slice(2);

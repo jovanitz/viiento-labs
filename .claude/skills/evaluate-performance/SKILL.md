@@ -11,22 +11,28 @@ core runs). The deterministic core makes benchmarks reproducible.
 ## How to run
 
 ```bash
-pnpm harness perf                 # build web + measure bundle, then run benchmarks
+pnpm harness perf                 # build + measure every shipping app, then run benchmarks
 pnpm harness perf --no-bundle     # benchmarks only (fast; no build)
-pnpm harness perf --no-bench      # bundle only
-pnpm harness perf --app=web --skip-build   # measure an existing dist build
+pnpm harness perf --no-bench      # bundles only
+pnpm harness perf --app=lab-web --skip-build   # one app, from an existing dist build
 ```
 
-Output is JSON on stdout:
+Which apps get measured is declared in `harness.config.mjs` (`perf.apps`) — the
+SHIPPING apps of the real verticals. The `lab` vertical is excluded on purpose:
+it is the reference implementation and never deployed, so its weight is not a
+number anyone should watch. A new vertical is one line of config. `--app=<name>`
+overrides the list for a one-off measurement of anything, lab included.
+
+Output is JSON on stdout — `bundles` is an ARRAY, one entry per measured app:
 
 ```jsonc
 { "tool":"perf", "ok":true,
-  "bundle": {
-    "app":"web", "built":true, "outDir":"dist/apps/web",
-    "totalBytes":456000, "gzipBytes":145000,
+  "bundles": [ {
+    "app":"bison-dashboard", "built":true, "outDir":"dist/apps/bison-dashboard",
+    "totalBytes":991037, "gzipBytes":284086,
     "byType": { ".js": { "bytes","gzip","files" } },
     "largest": [ { "file","bytes","gzip" } ]
-  },
+  } ],
   "bench": { "files": [ { "file", "benchmarks":[ { "name","hz","meanMs","rmePct","p99Ms" } ] } ] } }
 ```
 
