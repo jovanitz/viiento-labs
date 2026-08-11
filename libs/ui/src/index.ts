@@ -56,6 +56,8 @@ export * from './design-system/notifications/notifications-menu';
 export * from './design-system/toast/toaster';
 export * from './design-system/bottom-nav/bottom-nav';
 export * from './design-system/app-shell/app-shell';
+// Frosted-glass surface (peek sidebar, nav drawer, floating confirmations).
+export * from './design-system/glass';
 // The named spacing rhythm (tight/cozy/field/group/section) the lint rule
 // points at — a vertical reaches it through this barrel, not a relative path.
 export * from './design-system/stack/stack';

@@ -14,6 +14,16 @@ export const Dialog = DialogPrimitive.Root;
 export const DialogTrigger = DialogPrimitive.Trigger;
 export const DialogClose = DialogPrimitive.Close;
 
+/** A Popover/Select/Combobox opened from inside the dialog portals its
+ *  content to `document.body`, outside the dialog's own DOM subtree — so
+ *  Radix's outside-click dismiss sees a plain click "outside" and closes the
+ *  dialog under it. Ignore outside-clicks that actually land in one of
+ *  those nested popper layers. */
+const isInsideNestedPopper = (event: { target: EventTarget | null }) =>
+  (event.target as HTMLElement | null)?.closest(
+    '[data-radix-popper-content-wrapper]',
+  ) != null;
+
 const DialogOverlay = forwardRef<
   ElementRef<typeof DialogPrimitive.Overlay>,
   ComponentPropsWithoutRef<typeof DialogPrimitive.Overlay>
@@ -41,6 +51,9 @@ export const DialogContent = forwardRef<
         className,
       )}
       {...props}
+      onPointerDownOutside={(e) => {
+        if (isInsideNestedPopper(e)) e.preventDefault();
+      }}
     >
       {children}
       <DialogPrimitive.Close className="absolute right-4 top-4 rounded-sm opacity-70 transition-opacity hover:opacity-100 focus:outline-none focus:ring-2 focus:ring-ring disabled:pointer-events-none">

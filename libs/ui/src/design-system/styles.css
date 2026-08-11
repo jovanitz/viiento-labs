@@ -6,8 +6,16 @@
  * Tailwind v4 auto-detects template classes from the build root (the consuming
  * app). The DS components + screens live here in libs/ui, outside that root, so
  * scan them explicitly — without this their utility classes never get generated.
+ *
+ * The verticals' screens (ADR-0019) live in libs/verticals/<name>/ui, also
+ * outside every build root, so scan them too. Without this, a utility used
+ * only by a vertical view silently generates no CSS (the class sits in the DOM
+ * with no rule). Scanning ALL verticals from the shared sheet trades a little
+ * utility bloat per app for a glob that cannot go stale — this is a content
+ * scan for CSS generation, not a code import, so vertical isolation holds.
  */
 @source '../';
+@source '../../../verticals/';
 
 /**
  * Design-system tokens (shadcn/ui convention, Tailwind v4). Raw values live as
