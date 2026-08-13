@@ -40,7 +40,13 @@ const SearchField = ({
 const matches = (search: string) => (name: string) =>
   name.toLowerCase().includes(search.trim().toLowerCase());
 
-export const ClientsView = ({ vm }: { readonly vm: ClientsVM }) => {
+export const ClientsView = ({
+  vm,
+  onSelectClient,
+}: {
+  readonly vm: ClientsVM;
+  readonly onSelectClient?: ((id: string) => void) | undefined;
+}) => {
   const [search, setSearch] = useState('');
   const [page, setPage] = useState(1);
   // A new search always starts browsing from page 1 — staying on whatever
@@ -83,7 +89,7 @@ export const ClientsView = ({ vm }: { readonly vm: ClientsVM }) => {
             />
           ) : (
             <>
-              <ClientList clients={paged} />
+              <ClientList clients={paged} onSelectClient={onSelectClient} />
               {filtered.length > PAGE_SIZE ? (
                 <ClientsPager
                   page={safePage}

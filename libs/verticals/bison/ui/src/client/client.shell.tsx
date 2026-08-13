@@ -1,5 +1,11 @@
 import type { ReactNode } from 'react';
-import { CalendarDays, CalendarRange, Settings, Users } from 'lucide-react';
+import {
+  CalendarDays,
+  CalendarRange,
+  LayoutTemplate,
+  Settings,
+  Users,
+} from 'lucide-react';
 import {
   AppShell,
   BottomNavItem,
@@ -26,7 +32,7 @@ import {
  * app composes shell + view via the route; the `.view.tsx` files stay
  * presentational (content-only).
  */
-export type ClientSection = 'Agenda' | 'Clients' | 'Settings';
+export type ClientSection = 'Agenda' | 'Clients' | 'Templates' | 'Settings';
 
 export type { AccountMode };
 
@@ -36,6 +42,7 @@ const NAV: ReadonlyArray<{
 }> = [
   { label: 'Agenda', icon: CalendarDays },
   { label: 'Clients', icon: Users },
+  { label: 'Templates', icon: LayoutTemplate },
   { label: 'Settings', icon: Settings },
 ];
 

@@ -107,7 +107,12 @@ export const DraftAppointmentBlock = ({
           </div>
         </div>
       </PopoverAnchor>
-      <PopoverContent side="right" align="start" className="grid w-80 gap-4">
+      <PopoverContent
+        side="bottom"
+        align="center"
+        collisionPadding={16}
+        className="grid w-80 max-w-[calc(100vw-2rem)] gap-4"
+      >
         <FormBody form={form} />
       </PopoverContent>
     </Popover>
