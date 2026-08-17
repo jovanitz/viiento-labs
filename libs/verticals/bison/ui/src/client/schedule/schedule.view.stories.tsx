@@ -12,6 +12,8 @@ import {
   todayVM,
   tomorrowVM,
 } from './schedule.fixtures';
+import { newClient } from '../clients/clients.logic';
+import { defaultVM as clientsVM } from '../clients/clients.fixtures';
 
 const meta: Meta<typeof ScheduleView> = {
   title: 'Bison Manager/Client/Schedule',
@@ -40,6 +42,8 @@ const inShell = (vm: ScheduleVM, initialReorder: 'off' | ReorderMode = 'off') =>
           onBufferChange={noop}
           onApply={noop}
           onRetry={noop}
+          clients={clientsVM.clients}
+          onCreateClient={newClient}
         />
       </ClientShell>
     );

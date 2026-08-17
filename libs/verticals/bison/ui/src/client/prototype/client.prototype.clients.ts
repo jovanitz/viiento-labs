@@ -13,6 +13,7 @@ import {
   deriveClientsVM,
   type DatedAppointment,
 } from '../clients/clients.logic';
+import { CLIENT_CONTACTS } from '../clients/clients.contacts.fixtures';
 import type { ClientsVM } from '../clients/clients.types';
 import { DAYS, dateAt, dateLabelOf } from './client.prototype.days';
 
@@ -104,7 +105,7 @@ const extraVisits: readonly DatedAppointment[] = Array.from(
   },
 );
 
-export const clientsVM: ClientsVM = deriveClientsVM([
-  ...realVisits,
-  ...extraVisits,
-]);
+export const clientsVM: ClientsVM = deriveClientsVM(
+  [...realVisits, ...extraVisits],
+  CLIENT_CONTACTS,
+);

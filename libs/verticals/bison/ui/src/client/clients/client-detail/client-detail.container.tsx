@@ -12,6 +12,7 @@
 import { useState } from 'react';
 import { toast } from '@acme/ui';
 import { ClientDetailView } from './client-detail.view';
+import type { ClientDraft } from './client-form.fields';
 import { TemplatePickerDialog } from './timeline/template-picker/template-picker.dialog';
 import type { FillValues } from './timeline/timeline.fill.logic';
 import { emptyFillValues } from './timeline/timeline.fill.logic';
@@ -23,7 +24,12 @@ import {
 } from './timeline/timeline.fixtures';
 import type { TimelineEntry } from './timeline/timeline.types';
 import type { EntryTemplate } from '../../templates/templates.types';
-import type { ClientRow } from '../clients.types';
+import { nextChannelStatus } from '../clients.logic';
+import type {
+  ChannelStatus,
+  ClientChannels,
+  ClientRow,
+} from '../clients.types';
 
 const toggle = (ids: ReadonlySet<string>, id: string): ReadonlySet<string> => {
   const next = new Set(ids);
@@ -44,6 +50,17 @@ const applyFilledValues = (
     return template ? withFilledValues(e, template, values) : e;
   });
 
+const CHANNEL_NAME: Record<keyof ClientChannels, string> = {
+  telegram: 'Telegram',
+  whatsapp: 'WhatsApp',
+};
+
+const CHANNEL_TOAST: Record<ChannelStatus, (name: string) => string> = {
+  pending: (name) => `Connecting ${name}… waiting for confirmation.`,
+  verified: (name) => `${name} connected.`,
+  not_connected: (name) => `${name} disconnected.`,
+};
+
 export const ClientDetailContainer = ({
   client,
   templates,
@@ -59,6 +76,24 @@ export const ClientDetailContainer = ({
   const [expandedIds, setExpandedIds] = useState<ReadonlySet<string>>(
     new Set(),
   );
+  const [identity, setIdentity] = useState<ClientDraft>({
+    name: client.name,
+    phone: client.phone,
+    photoUrl: client.photoUrl ?? '',
+  });
+  const [channels, setChannels] = useState<ClientChannels>(client.channels);
+  const displayClient: ClientRow = { ...client, ...identity, channels };
+
+  const saveIdentity = (draft: ClientDraft) => {
+    setIdentity(draft);
+    toast.success('Contact info updated');
+  };
+
+  const cycleChannel = (channel: keyof ClientChannels) => {
+    const next = nextChannelStatus(channels[channel]);
+    setChannels((c) => ({ ...c, [channel]: next }));
+    toast.success(CHANNEL_TOAST[next](CHANNEL_NAME[channel]));
+  };
 
   const addFromTemplate = (template: EntryTemplate) => {
     const id = `entry-${entries.length + 1}`;
@@ -81,13 +116,15 @@ export const ClientDetailContainer = ({
   return (
     <>
       <ClientDetailView
-        client={client}
+        client={displayClient}
         onBack={onBack}
         timelineVM={deriveTimelineVM(entries, templates)}
         expandedEntryIds={expandedIds}
         onAddEntryClick={() => setPickerOpen(true)}
         onToggleEntry={(id) => setExpandedIds((ids) => toggle(ids, id))}
         onSaveEntryFields={saveEntryFields}
+        onSaveIdentity={saveIdentity}
+        onCycleChannel={cycleChannel}
       />
       <TemplatePickerDialog
         open={pickerOpen}

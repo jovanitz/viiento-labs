@@ -23,9 +23,9 @@ import {
   PX_PER_MIN,
 } from '../schedule.time';
 import { TimeSelect } from '../blocks/block-time.form';
-import { CLIENTS } from './new-appointment.fixtures';
 import type { useAppointmentForm } from './new-appointment.form';
 import type { useDraftDrag } from './new-appointment.drag';
+import type { ClientRow } from '../../clients/clients.types';
 
 /** 15-min granularity (DURATION_STEP), not Block-time's 30-min TIMES — an
  *  appointment's default 45-min length must land on a real option. */
@@ -36,16 +36,21 @@ const TIMES: readonly number[] = Array.from(
 
 const FormBody = ({
   form,
+  clients,
+  onCreateClient,
 }: {
   readonly form: ReturnType<typeof useAppointmentForm>;
+  readonly clients: readonly ClientRow[];
+  readonly onCreateClient: (name: string) => ClientRow;
 }) => (
   <>
     <div className="grid gap-1.5">
       <Label htmlFor="appt-client">Client</Label>
       <Combobox
-        options={CLIENTS}
+        options={clients.map((c) => ({ value: c.id, label: c.name }))}
         value={form.clientId}
         onChange={form.setClientId}
+        onCreate={(name) => form.setClientId(onCreateClient(name).id)}
         placeholder="Select a client…"
         searchPlaceholder="Search clients…"
         className="w-full"
@@ -78,12 +83,16 @@ export const DraftAppointmentBlock = ({
   dayStartMin,
   form,
   drag,
+  clients,
+  onCreateClient,
 }: {
   readonly open: boolean;
   readonly onOpenChange: (open: boolean) => void;
   readonly dayStartMin: number;
   readonly form: ReturnType<typeof useAppointmentForm>;
   readonly drag: ReturnType<typeof useDraftDrag>;
+  readonly clients: readonly ClientRow[];
+  readonly onCreateClient: (name: string) => ClientRow;
 }) => {
   if (!open) return null;
   return (
@@ -113,7 +122,11 @@ export const DraftAppointmentBlock = ({
         collisionPadding={16}
         className="grid w-80 max-w-[calc(100vw-2rem)] gap-4"
       >
-        <FormBody form={form} />
+        <FormBody
+          form={form}
+          clients={clients}
+          onCreateClient={onCreateClient}
+        />
       </PopoverContent>
     </Popover>
   );

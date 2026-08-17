@@ -17,11 +17,14 @@
  * The template LIST also lives here (not inside TemplatesContainer) because
  * both the Templates section (manage) and Clients (consume, via "Add entry")
  * need the same live list — saving a template must show up in a client's
- * picker without a reload.
+ * picker without a reload. The client ROSTER lives here for the same
+ * reason: Clients' "+ New client" and the New-appointment Combobox's inline
+ * "Create '<name>'" both add to the same list, and each must see what the
+ * other just created.
  */
 import { useState } from 'react';
 import { Building2, Settings as SettingsIcon } from 'lucide-react';
-import { EmptyState, Toaster } from '@acme/ui';
+import { EmptyState, Toaster, toast } from '@acme/ui';
 import {
   ClientShell,
   type AccountMode,
@@ -30,6 +33,9 @@ import {
 import { ScheduleSim } from './client.prototype.schedule';
 import { ClientsView } from '../clients/clients.view';
 import { ClientDetailContainer } from '../clients/client-detail/client-detail.container';
+import type { ClientDraft } from '../clients/client-detail/client-form.fields';
+import { addOrGetClient, vmFromClients } from '../clients/clients.logic';
+import type { ClientRow } from '../clients/clients.types';
 import { TemplatesContainer } from '../templates/templates.container';
 import { TEMPLATES } from '../templates/templates.fixtures';
 import type { EntryTemplate } from '../templates/templates.types';
@@ -57,6 +63,8 @@ type ClientsNav = {
   readonly selectedClientId: string | undefined;
   readonly onSelectClient: (id: string) => void;
   readonly onBackToClients: () => void;
+  readonly clients: readonly ClientRow[];
+  readonly onCreateClient: (draft: ClientDraft) => ClientRow;
 };
 
 type TemplatesNav = {
@@ -70,12 +78,26 @@ const content = (
   clientsNav: ClientsNav,
   templatesNav: TemplatesNav,
 ) => {
+  const {
+    selectedClientId,
+    onSelectClient,
+    onBackToClients,
+    clients,
+    onCreateClient,
+  } = clientsNav;
   if (accountMode === 'organization') return <OrgPlaceholder />;
-  if (section === 'Agenda') return <ScheduleSim />;
+  if (section === 'Agenda')
+    return (
+      <ScheduleSim
+        clients={clients}
+        onCreateClient={(name) =>
+          onCreateClient({ name, phone: '', photoUrl: '' })
+        }
+      />
+    );
   if (section === 'Clients') {
-    const { selectedClientId, onSelectClient, onBackToClients } = clientsNav;
     const selected = selectedClientId
-      ? clientsVM.clients.find((c) => c.id === selectedClientId)
+      ? clients.find((c) => c.id === selectedClientId)
       : undefined;
     if (selected)
       return (
@@ -85,7 +107,13 @@ const content = (
           onBack={onBackToClients}
         />
       );
-    return <ClientsView vm={clientsVM} onSelectClient={onSelectClient} />;
+    return (
+      <ClientsView
+        vm={vmFromClients(clients)}
+        onSelectClient={onSelectClient}
+        onCreateClient={onCreateClient}
+      />
+    );
   }
   if (section === 'Templates')
     return (
@@ -111,6 +139,9 @@ export const ClientPrototype = () => {
   const [selectedClientId, setSelectedClientId] = useState<string>();
   const [templates, setTemplates] =
     useState<readonly EntryTemplate[]>(TEMPLATES);
+  const [clients, setClients] = useState<readonly ClientRow[]>(
+    clientsVM.clients,
+  );
 
   // Switching sections (or account mode) always leaves the client detail
   // drill-down behind — coming back to Clients later should land on the
@@ -118,6 +149,22 @@ export const ClientPrototype = () => {
   const navigate = (next: ClientSection) => {
     setSelectedClientId(undefined);
     setSection(next);
+  };
+
+  const createClient = (draft: ClientDraft): ClientRow => {
+    const result = addOrGetClient(
+      clients,
+      draft.name,
+      draft.phone,
+      draft.photoUrl,
+    );
+    setClients(result.clients);
+    toast.success(
+      result.created
+        ? `"${draft.name}" added to Clients`
+        : `${draft.name} is already a client`,
+    );
+    return result.client;
   };
 
   return (
@@ -135,6 +182,8 @@ export const ClientPrototype = () => {
             selectedClientId,
             onSelectClient: setSelectedClientId,
             onBackToClients: () => setSelectedClientId(undefined),
+            clients,
+            onCreateClient: createClient,
           },
           {
             templates,

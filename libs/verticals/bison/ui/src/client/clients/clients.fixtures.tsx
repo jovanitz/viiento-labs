@@ -2,6 +2,7 @@
  * Fixture ViewModels for the Clients screen. Data only.
  */
 import { deriveClientsVM, type DatedAppointment } from './clients.logic';
+import { CLIENT_CONTACTS } from './clients.contacts.fixtures';
 import type { ClientsVM } from './clients.types';
 
 const visit = (
@@ -35,7 +36,7 @@ const VISITS: readonly DatedAppointment[] = [
   visit('2026-08-04', 'Iván Ríos', 'Beard trim'),
 ];
 
-export const defaultVM: ClientsVM = deriveClientsVM(VISITS);
+export const defaultVM: ClientsVM = deriveClientsVM(VISITS, CLIENT_CONTACTS);
 
 export const emptyVM: ClientsVM = deriveClientsVM([]);
 

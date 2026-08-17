@@ -12,12 +12,14 @@ import { toast } from '@acme/ui';
 import { TemplatesGalleryView } from './templates.gallery.view';
 import { TemplatePreviewView } from './templates.preview.view';
 import { TemplateBuilderContainer } from './builder/templates.builder.container';
+import { PrintLayoutContainer } from './print/templates.print.container';
 import type { EntryTemplate } from './templates.types';
 
 type Screen =
   | { readonly kind: 'gallery' }
   | { readonly kind: 'preview'; readonly template: EntryTemplate }
-  | { readonly kind: 'builder'; readonly template: EntryTemplate | undefined };
+  | { readonly kind: 'builder'; readonly template: EntryTemplate | undefined }
+  | { readonly kind: 'print'; readonly template: EntryTemplate };
 
 const openTemplate = (template: EntryTemplate): Screen =>
   template.kind === 'default'
@@ -47,14 +49,30 @@ export const TemplatesContainer = ({
       />
     );
 
-  if (screen.kind === 'builder')
+  if (screen.kind === 'print')
     return (
-      <TemplateBuilderContainer
+      <PrintLayoutContainer
         template={screen.template}
-        onCancel={() => setScreen({ kind: 'gallery' })}
-        onSave={save}
+        onBack={() => setScreen({ kind: 'gallery' })}
+        onSaveTemplate={onSaveTemplate}
       />
     );
+
+  if (screen.kind === 'builder') {
+    const existing = screen.template;
+    return (
+      <TemplateBuilderContainer
+        template={existing}
+        onCancel={() => setScreen({ kind: 'gallery' })}
+        onSave={save}
+        onOpenPrintLayout={
+          existing
+            ? () => setScreen({ kind: 'print', template: existing })
+            : undefined
+        }
+      />
+    );
+  }
 
   return (
     <TemplatesGalleryView

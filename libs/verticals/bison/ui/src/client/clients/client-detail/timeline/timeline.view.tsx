@@ -21,9 +21,9 @@ import type { TimelineVM } from './timeline.types';
 const DayMarker = ({ label }: { readonly label: string }) => (
   <div className="flex items-center gap-3 py-2">
     <div className="flex size-8 shrink-0 items-center justify-center">
-      <span className="relative z-10 size-2 rounded-full bg-foreground" />
+      <span className="relative z-10 size-2 rounded-full bg-primary" />
     </div>
-    <p className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">
+    <p className="text-xs font-semibold uppercase tracking-wide text-primary">
       {label}
     </p>
   </div>

@@ -8,7 +8,7 @@
  * @screen Bison Manager / Client / Templates / Builder
  * @phase draft
  */
-import { ArrowLeft } from 'lucide-react';
+import { ArrowLeft, Printer } from 'lucide-react';
 import { Button, Input, Textarea } from '@acme/ui';
 import { BuilderPalette } from './palette/templates.builder.palette';
 import { BuilderCanvas } from './canvas/templates.builder.canvas';
@@ -18,6 +18,35 @@ import type {
   TemplateBlock,
   TemplateIcon,
 } from '../templates.types';
+
+const HeaderActions = ({
+  canSave,
+  onSave,
+  onOpenPrintLayout,
+}: {
+  readonly canSave: boolean;
+  readonly onSave: () => void;
+  readonly onOpenPrintLayout?: (() => void) | undefined;
+}) => (
+  <div className="flex gap-2">
+    {onOpenPrintLayout ? (
+      <Button
+        variant="outline"
+        onClick={onOpenPrintLayout}
+        className="flex-1 sm:flex-none"
+      >
+        <Printer /> Print layout
+      </Button>
+    ) : null}
+    <Button
+      onClick={onSave}
+      disabled={!canSave}
+      className="flex-1 sm:flex-none"
+    >
+      Save template
+    </Button>
+  </div>
+);
 
 const Header = ({
   name,
@@ -29,6 +58,7 @@ const Header = ({
   onIconChange,
   onCancel,
   onSave,
+  onOpenPrintLayout,
 }: {
   readonly name: string;
   readonly description: string;
@@ -39,6 +69,7 @@ const Header = ({
   readonly onIconChange: (icon: TemplateIcon) => void;
   readonly onCancel: () => void;
   readonly onSave: () => void;
+  readonly onOpenPrintLayout?: (() => void) | undefined;
 }) => (
   <div className="flex flex-col gap-3">
     <Button
@@ -70,9 +101,11 @@ const Header = ({
           />
         </div>
       </div>
-      <Button onClick={onSave} disabled={!canSave} className="w-full sm:w-auto">
-        Save template
-      </Button>
+      <HeaderActions
+        canSave={canSave}
+        onSave={onSave}
+        onOpenPrintLayout={onOpenPrintLayout}
+      />
     </div>
   </div>
 );
@@ -91,6 +124,7 @@ export const TemplateBuilderView = ({
   onRemoveBlock,
   onCancel,
   onSave,
+  onOpenPrintLayout,
 }: {
   readonly name: string;
   readonly description: string;
@@ -105,6 +139,7 @@ export const TemplateBuilderView = ({
   readonly onRemoveBlock: (id: string) => void;
   readonly onCancel: () => void;
   readonly onSave: () => void;
+  readonly onOpenPrintLayout?: (() => void) | undefined;
 }) => (
   <div className="flex flex-col gap-6">
     <Header
@@ -115,6 +150,7 @@ export const TemplateBuilderView = ({
       onNameChange={onNameChange}
       onDescriptionChange={onDescriptionChange}
       onIconChange={onIconChange}
+      onOpenPrintLayout={onOpenPrintLayout}
       onCancel={onCancel}
       onSave={onSave}
     />

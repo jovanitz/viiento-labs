@@ -36,6 +36,7 @@ import type {
   ScheduleActions,
   ScheduleVM,
 } from './schedule.types';
+import type { ClientRow } from '../clients/clients.types';
 
 /** New-appointment's draft has no open position until a grid click sets one
  *  (see onSlotClick) — this is just a harmless initial value for the state,
@@ -49,6 +50,8 @@ type BodyProps = {
   readonly createOpen: boolean;
   readonly createStartMin: number;
   readonly onCreateOpenChange: (open: boolean) => void;
+  readonly clients: readonly ClientRow[];
+  readonly onCreateClient: (name: string) => ClientRow;
 } & Pick<
   ScheduleActions,
   'onCancelAppointment' | 'onRemoveBlock' | 'onRetry' | 'onCreateAppointment'
@@ -65,6 +68,8 @@ const Body = ({
   createStartMin,
   onCreateOpenChange,
   onCreateAppointment,
+  clients,
+  onCreateClient,
 }: BodyProps) => {
   if (vm.loading) return <Skeleton className="h-96" />;
   if (vm.error)
@@ -110,6 +115,8 @@ const Body = ({
             createStartMin={createStartMin}
             onCreateOpenChange={onCreateOpenChange}
             onCreateAppointment={onCreateAppointment}
+            clients={clients}
+            onCreateClient={onCreateClient}
           />
         </div>
       </div>
@@ -156,10 +163,18 @@ export const ScheduleView = ({
   onBufferChange,
   onApply,
   onRetry,
+  clients,
+  onCreateClient,
 }: {
   readonly vm: ScheduleVM;
   /** Story/preview convenience: open with a reorder mode already active. */
   readonly initialReorder?: 'off' | ReorderMode;
+  /** The account's roster — the New-appointment Combobox reads from it, and
+   *  can add to it inline (typing a name that doesn't exist yet offers
+   *  "Create '<name>'") — see clients/clients.view.tsx for the roster's own
+   *  "+ New client" entry point onto the same shared list. */
+  readonly clients: readonly ClientRow[];
+  readonly onCreateClient: (name: string) => ClientRow;
 } & ScheduleActions) => {
   const reorder = useReorder(vm, initialReorder, onApply);
   // New-appointment is a view-local dialog: a click on an empty grid slot
@@ -195,6 +210,8 @@ export const ScheduleView = ({
         createStartMin={createStartMin}
         onCreateOpenChange={setCreateOpen}
         onCreateAppointment={onCreateAppointment}
+        clients={clients}
+        onCreateClient={onCreateClient}
       />
       {reorder.changes.length > 0 ? (
         <ApplyBar

@@ -17,6 +17,7 @@ import type {
   ScheduleBlock,
   ScheduleVM,
 } from '../schedule.types';
+import type { ClientRow } from '../../clients/clients.types';
 
 /** Required-gap zones: the striped strip after each appointment is time the
  *  policy reserves (travel/cleanup) — not droppable. */
@@ -119,6 +120,8 @@ type ContentLayersProps = {
   readonly createOpen: boolean;
   readonly createStartMin: number;
   readonly onCreateOpenChange: (open: boolean) => void;
+  readonly clients: readonly ClientRow[];
+  readonly onCreateClient: (name: string) => ClientRow;
 } & Pick<
   ScheduleActions,
   'onCancelAppointment' | 'onRemoveBlock' | 'onCreateAppointment'
@@ -138,6 +141,8 @@ export const ContentLayers = ({
   createStartMin,
   onCreateOpenChange,
   onCreateAppointment,
+  clients,
+  onCreateClient,
 }: ContentLayersProps) => {
   const handleSlotClick = useCreateSlotClick({
     gridRef: drag.gridRef,
@@ -178,6 +183,8 @@ export const ContentLayers = ({
         dayStartMin={vm.dayStartMin}
         gridRef={drag.gridRef}
         onCreateAppointment={onCreateAppointment}
+        clients={clients}
+        onCreateClient={onCreateClient}
       />
     </div>
   );

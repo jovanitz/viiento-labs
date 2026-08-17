@@ -71,6 +71,31 @@ export type TemplateBlock = {
   readonly options?: readonly string[];
 };
 
+/** Where a placed print element gets its content: a specific capture
+ *  block's value ('field'), or a literal string the designer typed
+ *  ('text' — a title, the business name, a date placeholder). */
+export type PrintElementKind = 'field' | 'text';
+
+/** One item positioned freely on the printed page (raw px within the
+ *  designer's fixed-size canvas — see templates.print.logic.ts). Free x/y
+ *  is the whole point of a print layout over the capture schema's linear
+ *  `blocks` list: a prescription needs Age next to Weight, a signature at
+ *  the bottom, not everything stacked top to bottom. */
+export type PrintElement = {
+  readonly id: string;
+  readonly kind: PrintElementKind;
+  /** Set when `kind: 'field'` — the TemplateBlock whose value renders here. */
+  readonly blockId?: string | undefined;
+  /** The field's label (kind 'field') or the literal text (kind 'text'). */
+  readonly content: string;
+  readonly x: number;
+  readonly y: number;
+};
+
+export type PrintLayout = {
+  readonly elements: readonly PrintElement[];
+};
+
 export type EntryTemplate = {
   readonly id: string;
   readonly name: string;
@@ -80,4 +105,7 @@ export type EntryTemplate = {
   /** The capture schema. Every fixture template has one so the gallery can
    *  show a real field count; only `kind: 'custom'` ones are editable. */
   readonly blocks: readonly TemplateBlock[];
+  /** How a filled entry prints — undefined until the business designs one
+   *  in the Print layout screen (templates/print/). */
+  readonly printLayout?: PrintLayout;
 };

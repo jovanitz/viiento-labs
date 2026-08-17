@@ -17,16 +17,21 @@ const Group = ({
   templates,
   onSelectTemplate,
   trailing,
+  emptyHint,
 }: {
   readonly title: string;
   readonly templates: readonly EntryTemplate[];
   readonly onSelectTemplate: (template: EntryTemplate) => void;
   readonly trailing?: ReactNode;
+  readonly emptyHint?: string;
 }) => (
   <div className="flex flex-col gap-2">
     <p className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">
       {title}
     </p>
+    {templates.length === 0 && emptyHint ? (
+      <p className="text-sm text-muted-foreground">{emptyHint}</p>
+    ) : null}
     <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-3">
       {templates.map((template) => (
         <TemplateCard
@@ -69,6 +74,7 @@ export const TemplatesGalleryView = ({
         templates={custom}
         onSelectTemplate={onSelectTemplate}
         trailing={<NewTemplateCard onClick={onCreateNew} />}
+        emptyHint="You haven't created any templates yet — start from scratch below."
       />
     </Stack>
   );

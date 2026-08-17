@@ -15,6 +15,7 @@ import type {
   ScheduleVM,
 } from '../schedule.types';
 import type { Drag } from './block';
+import type { ClientRow } from '../../clients/clients.types';
 
 const HourLines = memo(
   ({ hours, dayStartMin }: Pick<ScheduleVM, 'hours' | 'dayStartMin'>) => (
@@ -47,6 +48,8 @@ type ScheduleGridProps = {
   readonly createOpen: boolean;
   readonly createStartMin: number;
   readonly onCreateOpenChange: (open: boolean) => void;
+  readonly clients: readonly ClientRow[];
+  readonly onCreateClient: (name: string) => ClientRow;
 } & Pick<
   ScheduleActions,
   'onCancelAppointment' | 'onRemoveBlock' | 'onCreateAppointment'
@@ -64,6 +67,8 @@ export const ScheduleGrid = ({
   createStartMin,
   onCreateOpenChange,
   onCreateAppointment,
+  clients,
+  onCreateClient,
 }: ScheduleGridProps) => {
   const shown = drag.preview?.blocks ?? blocks;
   // While dragging, the moved block keeps FULL width above everyone (GCal
@@ -98,6 +103,8 @@ export const ScheduleGrid = ({
         createStartMin={createStartMin}
         onCreateOpenChange={onCreateOpenChange}
         onCreateAppointment={onCreateAppointment}
+        clients={clients}
+        onCreateClient={onCreateClient}
       />
     </div>
   );

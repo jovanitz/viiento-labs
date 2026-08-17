@@ -8,11 +8,13 @@
  * @phase draft
  */
 import { ArrowLeft } from 'lucide-react';
-import { Avatar, Button, Stack } from '@acme/ui';
+import { Button, Stack } from '@acme/ui';
+import { ClientIdentityHeader } from './client-identity.header';
+import type { ClientDraft } from './client-form.fields';
 import { TimelineView } from './timeline/timeline.view';
 import type { FillValues } from './timeline/timeline.fill.logic';
 import type { TimelineVM } from './timeline/timeline.types';
-import type { ClientRow } from '../clients.types';
+import type { ClientChannels, ClientRow } from '../clients.types';
 
 export const ClientDetailView = ({
   client,
@@ -22,6 +24,8 @@ export const ClientDetailView = ({
   onAddEntryClick,
   onToggleEntry,
   onSaveEntryFields,
+  onSaveIdentity,
+  onCycleChannel,
 }: {
   readonly client: ClientRow;
   readonly onBack: () => void;
@@ -30,6 +34,8 @@ export const ClientDetailView = ({
   readonly onAddEntryClick: () => void;
   readonly onToggleEntry: (id: string) => void;
   readonly onSaveEntryFields: (id: string, values: FillValues) => void;
+  readonly onSaveIdentity: (draft: ClientDraft) => void;
+  readonly onCycleChannel: (channel: keyof ClientChannels) => void;
 }) => (
   <Stack gap="group" className="max-w-3xl">
     <Button
@@ -40,10 +46,11 @@ export const ClientDetailView = ({
     >
       <ArrowLeft /> Clients
     </Button>
-    <div className="flex items-center gap-3">
-      <Avatar fallback={client.initials} />
-      <h1 className="text-xl font-semibold text-foreground">{client.name}</h1>
-    </div>
+    <ClientIdentityHeader
+      client={client}
+      onSaveIdentity={onSaveIdentity}
+      onCycleChannel={onCycleChannel}
+    />
     <TimelineView
       vm={timelineVM}
       expandedIds={expandedEntryIds}

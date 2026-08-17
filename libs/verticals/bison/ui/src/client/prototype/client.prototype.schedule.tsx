@@ -10,6 +10,7 @@
 import { useState, type Dispatch, type SetStateAction } from 'react';
 import { toast } from '@acme/ui';
 import { ScheduleView } from '../schedule/schedule.view';
+import type { ClientRow } from '../clients/clients.types';
 import type {
   NewAppointment,
   NewCalendarBlock,
@@ -150,7 +151,13 @@ const useSim = () => {
   };
 };
 
-export const ScheduleSim = () => {
+export const ScheduleSim = ({
+  clients,
+  onCreateClient,
+}: {
+  readonly clients: readonly ClientRow[];
+  readonly onCreateClient: (name: string) => ClientRow;
+}) => {
   const sim = useSim();
   return (
     <ScheduleView
@@ -165,6 +172,8 @@ export const ScheduleSim = () => {
       onRetry={() =>
         toast('Still unreachable — this day simulates the error path')
       }
+      clients={clients}
+      onCreateClient={onCreateClient}
     />
   );
 };

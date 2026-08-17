@@ -9,6 +9,7 @@ import type { NewAppointment } from '../schedule.types';
 import { useDraftDrag } from './new-appointment.drag';
 import { DraftAppointmentBlock } from './new-appointment.block';
 import { useAppointmentForm } from './new-appointment.form';
+import type { ClientRow } from '../../clients/clients.types';
 
 export const NewAppointmentLayer = ({
   open,
@@ -17,6 +18,8 @@ export const NewAppointmentLayer = ({
   dayStartMin,
   gridRef,
   onCreateAppointment,
+  clients,
+  onCreateClient,
 }: {
   readonly open: boolean;
   readonly onOpenChange: (open: boolean) => void;
@@ -24,10 +27,13 @@ export const NewAppointmentLayer = ({
   readonly dayStartMin: number;
   readonly gridRef: RefObject<HTMLElement | null>;
   readonly onCreateAppointment: (appointment: NewAppointment) => void;
+  readonly clients: readonly ClientRow[];
+  readonly onCreateClient: (name: string) => ClientRow;
 }) => {
   const form = useAppointmentForm({
     open,
     initialStartMin,
+    clients,
     onCreate: onCreateAppointment,
     close: () => onOpenChange(false),
   });
@@ -48,6 +54,8 @@ export const NewAppointmentLayer = ({
       dayStartMin={dayStartMin}
       form={form}
       drag={drag}
+      clients={clients}
+      onCreateClient={onCreateClient}
     />
   );
 };

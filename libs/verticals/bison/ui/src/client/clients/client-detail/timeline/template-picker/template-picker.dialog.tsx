@@ -3,8 +3,8 @@
  * to the client's timeline (closes the dialog). Filling it in happens
  * inline on the timeline itself via that entry's Edit button — see
  * timeline.entry.tsx — never a second modal step. Managing/building
- * templates lives in its own place — see client/templates/ (reached from
- * Settings) — this picker just consumes the library.
+ * templates lives in its own place — see client/templates/, reached from
+ * its own nav item — this picker just consumes the library.
  */
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@acme/ui';
 import type { EntryTemplate } from '../../../../templates/templates.types';
@@ -26,7 +26,10 @@ export const TemplatePickerDialog = ({
       <DialogHeader>
         <DialogTitle>Add entry</DialogTitle>
       </DialogHeader>
-      <TemplatePickerPickStep templates={templates} onSelect={onSelectTemplate} />
+      <TemplatePickerPickStep
+        templates={templates}
+        onSelect={onSelectTemplate}
+      />
     </DialogContent>
   </Dialog>
 );

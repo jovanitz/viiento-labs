@@ -14,7 +14,7 @@
 import { useEffect, useRef, useState } from 'react';
 import { DAY_END_MIN } from '../schedule.time';
 import type { NewAppointment } from '../schedule.types';
-import { CLIENTS } from './new-appointment.fixtures';
+import type { ClientRow } from '../../clients/clients.types';
 
 const DEFAULT_DURATION = 45;
 
@@ -25,10 +25,11 @@ export const ACCOUNT_OWNER_NAME = 'Marco Vega';
 export const useAppointmentForm = (params: {
   readonly open: boolean;
   readonly initialStartMin: number;
+  readonly clients: readonly ClientRow[];
   readonly onCreate: (appointment: NewAppointment) => void;
   readonly close: () => void;
 }) => {
-  const { open, initialStartMin } = params;
+  const { open, initialStartMin, clients } = params;
   const [clientId, setClientId] = useState('');
   const [startMin, setStartMin] = useState(initialStartMin);
   const [endMin, setEndMin] = useState(
@@ -48,10 +49,10 @@ export const useAppointmentForm = (params: {
   const valid = !!clientId && durationMinutes > 0;
 
   const submit = () => {
-    const client = CLIENTS.find((c) => c.value === clientId);
+    const client = clients.find((c) => c.id === clientId);
     if (!client || !valid) return;
     params.onCreate({
-      clientName: client.label,
+      clientName: client.name,
       service: '',
       staffName: ACCOUNT_OWNER_NAME,
       startMin,

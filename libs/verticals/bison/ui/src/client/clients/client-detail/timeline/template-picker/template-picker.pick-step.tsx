@@ -75,8 +75,20 @@ export const TemplatePickerPickStep = ({
   const custom = templates.filter((t) => t.kind === 'custom');
   return (
     <div className="flex flex-col gap-4">
-      <Group title="Templates" templates={defaults} onSelect={onSelect} />
-      <Group title="Your templates" templates={custom} onSelect={onSelect} />
+      {defaults.length === 0 && custom.length === 0 ? (
+        <p className="text-sm text-muted-foreground">
+          No templates available yet.
+        </p>
+      ) : (
+        <>
+          <Group title="Templates" templates={defaults} onSelect={onSelect} />
+          <Group
+            title="Your templates"
+            templates={custom}
+            onSelect={onSelect}
+          />
+        </>
+      )}
       <ManageTemplatesHint />
     </div>
   );

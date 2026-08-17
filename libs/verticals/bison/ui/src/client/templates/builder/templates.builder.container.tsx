@@ -24,10 +24,12 @@ export const TemplateBuilderContainer = ({
   template,
   onCancel,
   onSave,
+  onOpenPrintLayout,
 }: {
   readonly template: EntryTemplate | undefined;
   readonly onCancel: () => void;
   readonly onSave: (template: EntryTemplate) => void;
+  readonly onOpenPrintLayout?: (() => void) | undefined;
 }) => {
   const [name, setName] = useState(template?.name ?? '');
   const [description, setDescription] = useState(template?.description ?? '');
@@ -65,6 +67,7 @@ export const TemplateBuilderContainer = ({
       onRemoveBlock={(id) => setBlocks((b) => removeBlock(b, id))}
       onCancel={onCancel}
       onSave={save}
+      onOpenPrintLayout={onOpenPrintLayout}
     />
   );
 };
