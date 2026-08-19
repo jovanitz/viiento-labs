@@ -1,7 +1,7 @@
 /** Step 1 of "Add entry" — pick which Template to attach. Presentational
  *  helper of template-picker.dialog.tsx. */
 import { LayoutTemplate } from 'lucide-react';
-import { TemplateIconGlyph } from '../../../../templates/templates.icons';
+import { TemplateIconBadge } from '../../../../templates/identity/templates.icons';
 import type { EntryTemplate } from '../../../../templates/templates.types';
 
 const TemplateCard = ({
@@ -16,9 +16,11 @@ const TemplateCard = ({
     onClick={onSelect}
     className="flex flex-col items-start gap-2 rounded-lg border border-border p-3 text-left transition-colors hover:border-primary hover:bg-muted/50 focus:outline-none focus-visible:ring-2 focus-visible:ring-ring"
   >
-    <div className="flex size-8 items-center justify-center rounded-md bg-muted text-muted-foreground">
-      <TemplateIconGlyph icon={template.icon} />
-    </div>
+    <TemplateIconBadge
+      icon={template.icon}
+      color={template.color}
+      rounded="md"
+    />
     <div>
       <p className="text-sm font-medium text-foreground">{template.name}</p>
       <p className="text-xs text-muted-foreground">{template.description}</p>

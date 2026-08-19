@@ -33,6 +33,11 @@ import {
 import { ScheduleSim } from './client.prototype.schedule';
 import { ClientsView } from '../clients/clients.view';
 import { ClientDetailContainer } from '../clients/client-detail/client-detail.container';
+import {
+  SHIPPED_FORMATS,
+  upsertFormat,
+} from '../templates/document/document.format';
+import type { DocumentFormat } from '../templates/document/document.format';
 import type { ClientDraft } from '../clients/client-detail/client-form.fields';
 import { addOrGetClient, vmFromClients } from '../clients/clients.logic';
 import type { ClientRow } from '../clients/clients.types';
@@ -60,6 +65,8 @@ const SettingsPlaceholder = () => (
 );
 
 type ClientsNav = {
+  /** From an Agenda appointment straight to that client's record. */
+  readonly onOpenClientByName: (name: string) => void;
   readonly selectedClientId: string | undefined;
   readonly onSelectClient: (id: string) => void;
   readonly onBackToClients: () => void;
@@ -70,6 +77,14 @@ type ClientsNav = {
 type TemplatesNav = {
   readonly templates: readonly EntryTemplate[];
   readonly onSaveTemplate: (template: EntryTemplate) => void;
+  /**
+   * The account's document wrappers (ADR-0021). Lifted here for the same
+   * reason `templates` is: a format tweaked in Templates has to be what a
+   * client's Timeline offers in the same session. Seeded with the shipped
+   * example catalog.
+   */
+  readonly formats: readonly DocumentFormat[];
+  readonly onSaveFormat: (format: DocumentFormat) => void;
 };
 
 const content = (
@@ -93,6 +108,7 @@ const content = (
         onCreateClient={(name) =>
           onCreateClient({ name, phone: '', photoUrl: '' })
         }
+        onOpenClient={clientsNav.onOpenClientByName}
       />
     );
   if (section === 'Clients') {
@@ -104,6 +120,7 @@ const content = (
         <ClientDetailContainer
           client={selected}
           templates={templatesNav.templates}
+          formats={templatesNav.formats}
           onBack={onBackToClients}
         />
       );
@@ -120,6 +137,8 @@ const content = (
       <TemplatesContainer
         templates={templatesNav.templates}
         onSaveTemplate={templatesNav.onSaveTemplate}
+        formats={templatesNav.formats}
+        onSaveFormat={templatesNav.onSaveFormat}
       />
     );
   return <SettingsPlaceholder />;
@@ -133,10 +152,25 @@ const upsertTemplate = (
     ? templates.map((t) => (t.id === template.id ? template : t))
     : [...templates, template];
 
+/** Agenda → client record. Appointments only carry a name (fixture shape),
+ *  so resolve against the roster; an unknown name gets a toast instead of a
+ *  dead click. */
+const openClient = (
+  clients: readonly ClientRow[],
+  name: string,
+  go: (id: string) => void,
+) => {
+  const client = clients.find((c) => c.name === name);
+  if (client) go(client.id);
+  else toast.error(`No client record for ${name}`);
+};
+
 export const ClientPrototype = () => {
   const [section, setSection] = useState<ClientSection>('Agenda');
   const [accountMode, setAccountMode] = useState<AccountMode>('individual');
   const [selectedClientId, setSelectedClientId] = useState<string>();
+  const [formats, setFormats] =
+    useState<readonly DocumentFormat[]>(SHIPPED_FORMATS);
   const [templates, setTemplates] =
     useState<readonly EntryTemplate[]>(TEMPLATES);
   const [clients, setClients] = useState<readonly ClientRow[]>(
@@ -150,6 +184,12 @@ export const ClientPrototype = () => {
     setSelectedClientId(undefined);
     setSection(next);
   };
+
+  const openClientByName = (name: string) =>
+    openClient(clients, name, (id) => {
+      setSelectedClientId(id);
+      setSection('Clients');
+    });
 
   const createClient = (draft: ClientDraft): ClientRow => {
     const result = addOrGetClient(
@@ -179,6 +219,7 @@ export const ClientPrototype = () => {
           accountMode,
           section,
           {
+            onOpenClientByName: openClientByName,
             selectedClientId,
             onSelectClient: setSelectedClientId,
             onBackToClients: () => setSelectedClientId(undefined),
@@ -189,6 +230,9 @@ export const ClientPrototype = () => {
             templates,
             onSaveTemplate: (template) =>
               setTemplates((ts) => upsertTemplate(ts, template)),
+            formats,
+            onSaveFormat: (format) =>
+              setFormats((fs) => upsertFormat(fs, format)),
           },
         )}
       </ClientShell>

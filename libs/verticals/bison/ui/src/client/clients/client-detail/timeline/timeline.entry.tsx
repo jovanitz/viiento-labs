@@ -7,69 +7,30 @@
  * second modal step.
  */
 import { useState } from 'react';
-import { ChevronDown, Pencil } from 'lucide-react';
-import { Button, cn } from '@acme/ui';
-import { TemplateIconGlyph } from '../../../templates/templates.icons';
-import { TemplateFillField } from './timeline.fill.field';
-import { isFillValid, valuesFromFields } from './timeline.fill.logic';
-import type { FillValues } from './timeline.fill.logic';
+import { FileText, Pencil } from 'lucide-react';
+import { Button } from '@acme/ui';
+import { TemplateIconBadge } from '../../../templates/identity/templates.icons';
+import type { TemplateColor } from '../../../templates/templates.types';
+import { FillFormRows } from './fill/timeline.fill.field';
+import {
+  EntryHeader,
+  ExpandedArea,
+  Field,
+  QuietAction,
+} from './timeline.entry.parts';
+import { isFillValid, valuesFromFields } from './fill/timeline.fill.logic';
+import type { FillValues } from './fill/timeline.fill.logic';
 import type { TemplateBlock } from '../../../templates/templates.types';
 import type { TimelineEntry } from './timeline.types';
-
-const Field = ({
-  label,
-  value,
-}: {
-  readonly label: string;
-  readonly value: string;
-}) => (
-  <div className="flex flex-col gap-0.5">
-    <dt className="text-xs text-muted-foreground">{label}</dt>
-    <dd className="text-sm text-foreground">{value}</dd>
-  </div>
-);
-
-const EntryHeader = ({
-  entry,
-  expanded,
-  onClick,
-}: {
-  readonly entry: TimelineEntry;
-  readonly expanded: boolean;
-  readonly onClick: () => void;
-}) => (
-  <button
-    type="button"
-    onClick={onClick}
-    aria-expanded={expanded}
-    className="flex w-full items-center gap-2 rounded-md px-2 py-1 text-left transition-colors hover:bg-muted/50 focus:outline-none focus-visible:ring-2 focus-visible:ring-ring"
-  >
-    <div className="min-w-0 flex-1">
-      <div className="flex items-center justify-between gap-2">
-        <p className="truncate text-sm font-medium text-foreground">
-          {entry.templateName}
-        </p>
-        <p className="shrink-0 text-xs tabular-nums text-muted-foreground">
-          {entry.timeLabel}
-        </p>
-      </div>
-      <p className="truncate text-sm text-muted-foreground">{entry.summary}</p>
-    </div>
-    <ChevronDown
-      className={cn(
-        'size-4 shrink-0 text-muted-foreground transition-transform',
-        expanded && 'rotate-180',
-      )}
-    />
-  </button>
-);
 
 const EntryViewContent = ({
   entry,
   onEdit,
+  onOpenDocument,
 }: {
   readonly entry: TimelineEntry;
   readonly onEdit: () => void;
+  readonly onOpenDocument?: (() => void) | undefined;
 }) => (
   <div className="flex flex-col gap-3 px-2 pb-2 pt-3">
     <dl className="flex flex-col gap-3">
@@ -77,15 +38,20 @@ const EntryViewContent = ({
         <Field key={field.label} label={field.label} value={field.value} />
       ))}
     </dl>
-    <Button
-      type="button"
-      variant="outline"
-      size="sm"
-      className="w-fit"
-      onClick={onEdit}
-    >
-      <Pencil /> Edit
-    </Button>
+    {/* Quiet inline actions — the entry's content is the point; these
+        surface on intent, not as boxed buttons competing with it. */}
+    <div className="flex items-center gap-1">
+      <QuietAction onClick={onEdit}>
+        <Pencil className="size-3.5" /> Edit
+      </QuietAction>
+      {/* Issuing lives HERE, not in Templates: a document is a filled
+          entry on paper, and only an entry has values. */}
+      {onOpenDocument ? (
+        <QuietAction onClick={onOpenDocument}>
+          <FileText className="size-3.5" /> Document
+        </QuietAction>
+      ) : null}
+    </div>
   </div>
 );
 
@@ -103,14 +69,7 @@ const EntryEditForm = ({
   readonly onSave: () => void;
 }) => (
   <div className="flex flex-col gap-3 px-2 pb-2 pt-3">
-    {blocks.map((block) => (
-      <TemplateFillField
-        key={block.id}
-        block={block}
-        value={draft[block.id] ?? ''}
-        onChange={(value) => onChange(block.id, value)}
-      />
-    ))}
+    <FillFormRows blocks={blocks} values={draft} onChange={onChange} />
     <div className="flex items-center gap-2">
       <Button
         type="button"
@@ -130,15 +89,21 @@ const EntryEditForm = ({
 export const EntryRow = ({
   entry,
   blocks,
+  color,
   expanded,
   onToggle,
   onSaveFields,
+  onOpenDocument,
 }: {
   readonly entry: TimelineEntry;
   readonly blocks: readonly TemplateBlock[];
+  /** The template's accent — the at-a-glance answer to "which form is
+   *  this?" when a day mixes entries from several. */
+  readonly color: TemplateColor;
   readonly expanded: boolean;
   readonly onToggle: () => void;
   readonly onSaveFields: (values: FillValues) => void;
+  readonly onOpenDocument?: (() => void) | undefined;
 }) => {
   const [editing, setEditing] = useState(false);
   const [draft, setDraft] = useState<FillValues>({});
@@ -155,22 +120,32 @@ export const EntryRow = ({
 
   return (
     <div className="flex items-start gap-3 py-2">
-      <div className="relative z-10 flex size-8 shrink-0 items-center justify-center rounded-full border border-border bg-background text-muted-foreground">
-        <TemplateIconGlyph icon={entry.icon} />
-      </div>
+      <TemplateIconBadge
+        icon={entry.icon}
+        color={color}
+        className="relative z-10 size-8"
+      />
       <div className="min-w-0 flex-1">
         <EntryHeader entry={entry} expanded={expanded} onClick={onToggle} />
         {expanded && editing ? (
-          <EntryEditForm
-            blocks={blocks}
-            draft={draft}
-            onChange={(id, value) => setDraft((d) => ({ ...d, [id]: value }))}
-            onCancel={() => setEditing(false)}
-            onSave={save}
-          />
+          <ExpandedArea color={color}>
+            <EntryEditForm
+              blocks={blocks}
+              draft={draft}
+              onChange={(id, value) => setDraft((d) => ({ ...d, [id]: value }))}
+              onCancel={() => setEditing(false)}
+              onSave={save}
+            />
+          </ExpandedArea>
         ) : null}
         {expanded && !editing ? (
-          <EntryViewContent entry={entry} onEdit={startEdit} />
+          <ExpandedArea color={color}>
+            <EntryViewContent
+              entry={entry}
+              onEdit={startEdit}
+              onOpenDocument={onOpenDocument}
+            />
+          </ExpandedArea>
         ) : null}
       </div>
     </div>

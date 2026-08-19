@@ -54,13 +54,18 @@ type BodyProps = {
   readonly onCreateClient: (name: string) => ClientRow;
 } & Pick<
   ScheduleActions,
-  'onCancelAppointment' | 'onRemoveBlock' | 'onRetry' | 'onCreateAppointment'
+  | 'onCancelAppointment'
+  | 'onOpenClient'
+  | 'onRemoveBlock'
+  | 'onRetry'
+  | 'onCreateAppointment'
 >;
 
 const Body = ({
   vm,
   reorder,
   onCancelAppointment,
+  onOpenClient,
   onRemoveBlock,
   onRetry,
   onSlotClick,
@@ -109,6 +114,7 @@ const Body = ({
             drag={reorder.drag}
             reorderActive={reorder.mode !== 'off'}
             onCancelAppointment={onCancelAppointment}
+            onOpenClient={onOpenClient}
             onRemoveBlock={onRemoveBlock}
             onSlotClick={onSlotClick}
             createOpen={createOpen}
@@ -158,6 +164,7 @@ export const ScheduleView = ({
   onSelectDay,
   onCreateAppointment,
   onCancelAppointment,
+  onOpenClient,
   onBlockTime,
   onRemoveBlock,
   onBufferChange,
@@ -203,6 +210,7 @@ export const ScheduleView = ({
         vm={vm}
         reorder={reorder}
         onCancelAppointment={onCancelAppointment}
+        onOpenClient={onOpenClient}
         onRemoveBlock={onRemoveBlock}
         onRetry={onRetry}
         onSlotClick={openCreateAt}

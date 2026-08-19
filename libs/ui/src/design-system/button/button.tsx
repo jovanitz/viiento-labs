@@ -14,7 +14,10 @@ import { cn } from '../cn';
  * trigger can't anchor its popover, so the menu never opens.
  */
 export const buttonVariants = cva(
-  'inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-md text-sm font-medium transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring disabled:pointer-events-none disabled:opacity-50',
+  // The svg rules keep icon buttons proportionate: a lucide icon renders at
+  // its natural 24px otherwise, dwarfing an h-8 button's 12px label. An icon
+  // that sets its own size-* class keeps it.
+  "inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-md text-sm font-medium transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring disabled:pointer-events-none disabled:opacity-50 [&_svg]:pointer-events-none [&_svg]:shrink-0 [&_svg:not([class*='size-'])]:size-4",
   {
     variants: {
       variant: {

@@ -13,6 +13,7 @@ export const TEMPLATES: readonly EntryTemplate[] = [
     name: 'Visit note',
     description: 'A quick freeform note about the visit.',
     icon: 'file-text',
+    color: 'blue',
     kind: 'default',
     blocks: [
       {
@@ -29,6 +30,7 @@ export const TEMPLATES: readonly EntryTemplate[] = [
     name: 'Clinical record · NOM-004',
     description: "Structured record per Mexico's clinical-record standard.",
     icon: 'stethoscope',
+    color: 'teal',
     kind: 'default',
     blocks: [
       {
@@ -78,6 +80,7 @@ export const TEMPLATES: readonly EntryTemplate[] = [
     name: 'Signed consent',
     description: 'Confirms the client signed off on a procedure.',
     icon: 'shield-check',
+    color: 'violet',
     kind: 'default',
     blocks: [
       {
@@ -116,6 +119,7 @@ export const TEMPLATES: readonly EntryTemplate[] = [
     name: 'Follow-up plan',
     description: "Marco's own template for check-ins between visits.",
     icon: 'sparkles',
+    color: 'amber',
     kind: 'custom',
     blocks: [
       {

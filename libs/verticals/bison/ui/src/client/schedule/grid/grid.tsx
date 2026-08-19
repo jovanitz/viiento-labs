@@ -52,7 +52,10 @@ type ScheduleGridProps = {
   readonly onCreateClient: (name: string) => ClientRow;
 } & Pick<
   ScheduleActions,
-  'onCancelAppointment' | 'onRemoveBlock' | 'onCreateAppointment'
+  | 'onCancelAppointment'
+  | 'onOpenClient'
+  | 'onRemoveBlock'
+  | 'onCreateAppointment'
 >;
 
 export const ScheduleGrid = ({
@@ -61,6 +64,7 @@ export const ScheduleGrid = ({
   drag,
   reorderActive,
   onCancelAppointment,
+  onOpenClient,
   onRemoveBlock,
   onSlotClick,
   createOpen,
@@ -97,6 +101,7 @@ export const ScheduleGrid = ({
         drag={drag}
         reorderActive={reorderActive}
         onCancelAppointment={onCancelAppointment}
+        onOpenClient={onOpenClient}
         onRemoveBlock={onRemoveBlock}
         onSlotClick={onSlotClick}
         createOpen={createOpen}

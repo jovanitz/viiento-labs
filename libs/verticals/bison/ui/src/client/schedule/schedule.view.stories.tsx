@@ -37,6 +37,7 @@ const inShell = (vm: ScheduleVM, initialReorder: 'off' | ReorderMode = 'off') =>
           onSelectDay={noop}
           onCreateAppointment={noop}
           onCancelAppointment={noop}
+          onOpenClient={noop}
           onBlockTime={noop}
           onRemoveBlock={noop}
           onBufferChange={noop}

@@ -7,7 +7,15 @@
  * inside the label/option inputs still selects text instead of dragging.
  */
 import type { DragEvent } from 'react';
-import { GripVertical, Plus, Trash2, X } from 'lucide-react';
+import {
+  Columns2,
+  Columns3,
+  GripVertical,
+  Plus,
+  RectangleHorizontal,
+  Trash2,
+  X,
+} from 'lucide-react';
 import {
   Button,
   Input,
@@ -109,16 +117,22 @@ const RowSettings = ({
       />
       Required
     </label>
+    {/* How many fields share the row — a tap per stop beats a slider for
+        three discrete values. Same-width neighbours pack together. */}
     <ToggleGroup
       type="single"
       value={block.width}
       onValueChange={(v) => v && onChange({ width: v as FieldWidth })}
+      aria-label="Fields per row"
     >
-      <ToggleGroupItem value="full" size="sm">
-        Full
+      <ToggleGroupItem value="full" size="sm" aria-label="Full row">
+        <RectangleHorizontal />
       </ToggleGroupItem>
-      <ToggleGroupItem value="half" size="sm">
-        Half
+      <ToggleGroupItem value="half" size="sm" aria-label="Two per row">
+        <Columns2 />
+      </ToggleGroupItem>
+      <ToggleGroupItem value="third" size="sm" aria-label="Three per row">
+        <Columns3 />
       </ToggleGroupItem>
     </ToggleGroup>
   </div>

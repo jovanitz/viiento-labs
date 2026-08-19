@@ -68,6 +68,7 @@ const BlockItems = ({
   reorderActive,
   canSchedule,
   onCancelAppointment,
+  onOpenClient,
 }: {
   readonly shown: readonly ScheduleBlock[];
   readonly layout: ReadonlyMap<string, { col: number; cols: number }>;
@@ -76,7 +77,7 @@ const BlockItems = ({
   readonly drag: Drag;
   readonly reorderActive: boolean;
   readonly canSchedule: boolean;
-} & Pick<ScheduleActions, 'onCancelAppointment'>) => (
+} & Pick<ScheduleActions, 'onCancelAppointment' | 'onOpenClient'>) => (
   <>
     {shown.map((block) => {
       const slot = layout.get(block.id) ?? { col: 0, cols: 1 };
@@ -98,6 +99,7 @@ const BlockItems = ({
           key={block.id}
           block={block}
           onCancelAppointment={onCancelAppointment}
+          onOpenClient={onOpenClient}
         >
           {rendered}
         </BlockMenu>
@@ -124,7 +126,10 @@ type ContentLayersProps = {
   readonly onCreateClient: (name: string) => ClientRow;
 } & Pick<
   ScheduleActions,
-  'onCancelAppointment' | 'onRemoveBlock' | 'onCreateAppointment'
+  | 'onCancelAppointment'
+  | 'onOpenClient'
+  | 'onRemoveBlock'
+  | 'onCreateAppointment'
 >;
 
 export const ContentLayers = ({
@@ -135,6 +140,7 @@ export const ContentLayers = ({
   drag,
   reorderActive,
   onCancelAppointment,
+  onOpenClient,
   onRemoveBlock,
   onSlotClick,
   createOpen,
@@ -175,6 +181,7 @@ export const ContentLayers = ({
         reorderActive={reorderActive}
         canSchedule={vm.canSchedule}
         onCancelAppointment={onCancelAppointment}
+        onOpenClient={onOpenClient}
       />
       <NewAppointmentLayer
         open={createOpen}

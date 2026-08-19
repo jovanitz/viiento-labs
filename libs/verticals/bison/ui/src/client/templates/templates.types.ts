@@ -15,6 +15,12 @@
 
 export type TemplateKind = 'default' | 'custom';
 
+import type { TemplateColor } from './identity/templates.colors';
+
+/** Re-exported so consumers of the template shape need one import; the
+ *  palette itself lives in templates.colors.ts. */
+export type { TemplateColor };
+
 /** Icon key for the Template itself, resolved to a lucide-react glyph by
  *  templates.icons — VMs stay framework-agnostic. */
 export type TemplateIcon =
@@ -54,10 +60,18 @@ export const CHOICE_KINDS: readonly FieldKind[] = [
   'checkboxes',
 ];
 
-/** Full width stacks the block; half lets two sit side by side (e.g. a
- *  prescription's Age next to Weight) — the same hint both the inline
- *  timeline render and the future print layout read. */
-export type FieldWidth = 'full' | 'half';
+/** How many fields share the row: full stands alone, half pairs two,
+ *  third packs three (e.g. a prescription's Age · Weight · Blood type).
+ *  The same hint drives the inline timeline form AND the printed page —
+ *  only same-width neighbours pack, so rows always split evenly. */
+export type FieldWidth = 'full' | 'half' | 'third';
+
+/** Row capacity per width — the one place the packing rule is numeric. */
+export const WIDTH_COLUMNS: Record<FieldWidth, number> = {
+  full: 1,
+  half: 2,
+  third: 3,
+};
 
 export type TemplateBlock = {
   readonly id: string;
@@ -101,6 +115,9 @@ export type EntryTemplate = {
   readonly name: string;
   readonly description: string;
   readonly icon: TemplateIcon;
+  /** The recognition accent — follows the template everywhere its icon
+   *  does, so entries from different forms tell apart at a glance. */
+  readonly color: TemplateColor;
   readonly kind: TemplateKind;
   /** The capture schema. Every fixture template has one so the gallery can
    *  show a real field count; only `kind: 'custom'` ones are editable. */

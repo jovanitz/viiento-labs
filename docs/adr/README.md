@@ -24,3 +24,5 @@ consequences. They are immutable once accepted; supersede rather than edit.
 | 0017 | [Business verticals (giros) fully isolated — A never knows B exists](0017-giro-isolation.md)                         |
 | 0018 | [Payments as a ledger — manual-billing lifecycle, derived coverage](0018-payments-ledger-manual-billing.md)          |
 | 0019 | [A `vertical:*` tag axis makes vertical isolation a lint error](0019-vertical-tag-axis.md)                           |
+| 0020 | [Forms become documents — semantic definition + shipped themes](0020-forms-as-documents.md)                          |
+| 0021 | [Every template prints itself; a Format wraps it](0021-formats-wrap-printable-templates.md)                          |

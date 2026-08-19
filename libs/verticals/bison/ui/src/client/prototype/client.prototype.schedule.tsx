@@ -154,9 +154,11 @@ const useSim = () => {
 export const ScheduleSim = ({
   clients,
   onCreateClient,
+  onOpenClient,
 }: {
   readonly clients: readonly ClientRow[];
   readonly onCreateClient: (name: string) => ClientRow;
+  readonly onOpenClient: (clientName: string) => void;
 }) => {
   const sim = useSim();
   return (
@@ -165,6 +167,7 @@ export const ScheduleSim = ({
       onSelectDay={(id) => sim.setDayIdx(clamp(Number(id), 0, DAYS.length - 1))}
       onCreateAppointment={sim.addAppointment}
       onCancelAppointment={sim.cancelAppointment}
+      onOpenClient={onOpenClient}
       onBlockTime={sim.addBlock}
       onRemoveBlock={sim.removeBlock}
       onBufferChange={sim.setBufferMinutes}

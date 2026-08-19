@@ -3,7 +3,7 @@
  *  templates.gallery.view.tsx. */
 import { Plus } from 'lucide-react';
 import { Badge, Card } from '@acme/ui';
-import { TemplateIconGlyph } from './templates.icons';
+import { TemplateIconBadge } from './identity/templates.icons';
 import { STRUCTURAL_KINDS } from './templates.types';
 import type { EntryTemplate } from './templates.types';
 
@@ -26,9 +26,13 @@ export const TemplateCard = ({
     >
       <Card className="flex h-full flex-col gap-3 p-4 transition-colors hover:border-primary hover:bg-muted/50">
         <div className="flex items-center justify-between">
-          <div className="flex size-9 items-center justify-center rounded-md bg-muted text-muted-foreground">
-            <TemplateIconGlyph icon={template.icon} className="size-5" />
-          </div>
+          <TemplateIconBadge
+            icon={template.icon}
+            color={template.color}
+            rounded="md"
+            className="size-9"
+            glyphClassName="size-5"
+          />
           {template.kind === 'custom' ? (
             <Badge variant="secondary" appearance="soft">
               Custom

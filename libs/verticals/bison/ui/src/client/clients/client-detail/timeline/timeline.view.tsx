@@ -15,7 +15,7 @@ import { Fragment } from 'react';
 import { Plus } from 'lucide-react';
 import { Button, EmptyState, Stack } from '@acme/ui';
 import { EntryRow } from './timeline.entry';
-import type { FillValues } from './timeline.fill.logic';
+import type { FillValues } from './fill/timeline.fill.logic';
 import type { TimelineVM } from './timeline.types';
 
 const DayMarker = ({ label }: { readonly label: string }) => (
@@ -34,11 +34,13 @@ const Rail = ({
   expandedIds,
   onToggleEntry,
   onSaveEntryFields,
+  onOpenEntryDocument,
 }: {
   readonly vm: TimelineVM;
   readonly expandedIds: ReadonlySet<string>;
   readonly onToggleEntry: (id: string) => void;
   readonly onSaveEntryFields: (id: string, values: FillValues) => void;
+  readonly onOpenEntryDocument: (id: string) => void;
 }) => (
   <div className="relative">
     <div aria-hidden className="absolute inset-y-4 left-4 w-px bg-border" />
@@ -55,9 +57,11 @@ const Rail = ({
                 key={entry.id}
                 entry={entry}
                 blocks={template?.blocks ?? []}
+                color={template?.color ?? 'gray'}
                 expanded={expandedIds.has(entry.id)}
                 onToggle={() => onToggleEntry(entry.id)}
                 onSaveFields={(values) => onSaveEntryFields(entry.id, values)}
+                onOpenDocument={() => onOpenEntryDocument(entry.id)}
               />
             );
           })}
@@ -73,12 +77,15 @@ export const TimelineView = ({
   onAddClick,
   onToggleEntry,
   onSaveEntryFields,
+  onOpenEntryDocument,
 }: {
   readonly vm: TimelineVM;
   readonly expandedIds: ReadonlySet<string>;
   readonly onAddClick: () => void;
   readonly onToggleEntry: (id: string) => void;
   readonly onSaveEntryFields: (id: string, values: FillValues) => void;
+  /** Every template prints itself (ADR-0021), so every entry has this. */
+  readonly onOpenEntryDocument: (id: string) => void;
 }) => (
   <Stack gap="group">
     <div className="flex items-center justify-between">
@@ -99,6 +106,7 @@ export const TimelineView = ({
         expandedIds={expandedIds}
         onToggleEntry={onToggleEntry}
         onSaveEntryFields={onSaveEntryFields}
+        onOpenEntryDocument={onOpenEntryDocument}
       />
     )}
   </Stack>

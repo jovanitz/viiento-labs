@@ -9,8 +9,8 @@
 import { TEMPLATES } from '../../../templates/templates.fixtures';
 import type { EntryTemplate } from '../../../templates/templates.types';
 import type { EntryField, TimelineEntry } from './timeline.types';
-import { fieldsFrom, summaryFrom } from './timeline.fill.logic';
-import type { FillValues } from './timeline.fill.logic';
+import { fieldsFrom, summaryFrom } from './fill/timeline.fill.logic';
+import type { FillValues } from './fill/timeline.fill.logic';
 
 const templateById = (id: string) =>
   TEMPLATES.find((t) => t.id === id) ?? TEMPLATES[0]!;

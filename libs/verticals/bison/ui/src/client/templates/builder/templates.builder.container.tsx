@@ -17,26 +17,36 @@ import type {
   EntryTemplate,
   FieldKind,
   TemplateBlock,
+  TemplateColor,
   TemplateIcon,
 } from '../templates.types';
+
+/** The editable draft, seeded from an existing template or blank. */
+const seedDraft = (template: EntryTemplate | undefined) => ({
+  name: template?.name ?? '',
+  description: template?.description ?? '',
+  icon: template?.icon ?? ('sparkles' as TemplateIcon),
+  color: template?.color ?? ('gray' as TemplateColor),
+});
 
 export const TemplateBuilderContainer = ({
   template,
   onCancel,
   onSave,
-  onOpenPrintLayout,
 }: {
   readonly template: EntryTemplate | undefined;
   readonly onCancel: () => void;
   readonly onSave: (template: EntryTemplate) => void;
-  readonly onOpenPrintLayout?: (() => void) | undefined;
 }) => {
-  const [name, setName] = useState(template?.name ?? '');
-  const [description, setDescription] = useState(template?.description ?? '');
-  const [icon, setIcon] = useState<TemplateIcon>(template?.icon ?? 'sparkles');
+  const seed = seedDraft(template);
+  const [name, setName] = useState(seed.name);
+  const [description, setDescription] = useState(seed.description);
+  const [icon, setIcon] = useState<TemplateIcon>(seed.icon);
+  const [color, setColor] = useState<TemplateColor>(seed.color);
   const [blocks, setBlocks] = useState<readonly TemplateBlock[]>(
     template?.blocks ?? [],
   );
+  const [previewing, setPreviewing] = useState(false);
 
   const save = () =>
     onSave({
@@ -44,6 +54,7 @@ export const TemplateBuilderContainer = ({
       name: name.trim(),
       description: description.trim(),
       icon,
+      color,
       kind: 'custom',
       blocks,
     });
@@ -53,10 +64,12 @@ export const TemplateBuilderContainer = ({
       name={name}
       description={description}
       icon={icon}
+      color={color}
       blocks={blocks}
       onNameChange={setName}
       onDescriptionChange={setDescription}
       onIconChange={setIcon}
+      onColorChange={setColor}
       onInsertKind={(kind: FieldKind, atIndex) =>
         setBlocks((b) => insertBlock(b, createBlock(kind, b), atIndex))
       }
@@ -67,7 +80,8 @@ export const TemplateBuilderContainer = ({
       onRemoveBlock={(id) => setBlocks((b) => removeBlock(b, id))}
       onCancel={onCancel}
       onSave={save}
-      onOpenPrintLayout={onOpenPrintLayout}
+      previewing={previewing}
+      onTogglePreview={() => setPreviewing((p) => !p)}
     />
   );
 };

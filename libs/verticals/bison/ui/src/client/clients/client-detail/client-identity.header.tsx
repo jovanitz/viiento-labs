@@ -52,8 +52,13 @@ const EditClientButton = ({
   return (
     <Dialog open={open} onOpenChange={openChange}>
       <DialogTrigger asChild>
-        <Button type="button" variant="ghost" size="sm" className="shrink-0">
-          <Pencil /> Edit
+        <Button
+          type="button"
+          variant="ghost"
+          size="sm"
+          className="h-7 shrink-0 gap-1.5 px-2 text-muted-foreground hover:text-foreground"
+        >
+          <Pencil className="size-3.5" /> Edit
         </Button>
       </DialogTrigger>
       <DialogContent className="sm:max-w-sm">

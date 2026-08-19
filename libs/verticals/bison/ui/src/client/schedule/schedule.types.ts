@@ -130,6 +130,9 @@ export type ScheduleActions = {
   /** Books a new appointment on the day currently shown. */
   readonly onCreateAppointment: (appointment: NewAppointment) => void;
   readonly onCancelAppointment: (id: string) => void;
+  /** Jumps to this client's record (the appointment is the entry point to
+   *  the person, not just a slot on the grid). */
+  readonly onOpenClient: (clientName: string) => void;
   /** Creates a calendar block from the Block-time popover. */
   readonly onBlockTime: (block: NewCalendarBlock) => void;
   /** Deletes a calendar block (a recurring one goes with its whole series). */

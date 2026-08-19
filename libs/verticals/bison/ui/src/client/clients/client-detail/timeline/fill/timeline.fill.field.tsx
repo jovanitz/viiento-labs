@@ -19,7 +19,9 @@ import {
   Switch,
   Textarea,
 } from '@acme/ui';
-import type { TemplateBlock } from '../../../templates/templates.types';
+import { FileInput } from './timeline.fill.file';
+import { fillRows } from './timeline.fill.logic';
+import type { TemplateBlock } from '../../../../templates/templates.types';
 
 const toggleOption = (
   selected: readonly string[],
@@ -93,16 +95,15 @@ type TextLikeProps = {
   readonly onChange: (value: string) => void;
 };
 
-/** short-text/number/date/time/file are all a plain `<Input>` that only
- *  differs by `type`/`placeholder` — one config table instead of a branch
- *  per kind. */
+/** short-text/number/date/time are all a plain `<Input>` that only
+ *  differs by `type` — one config table instead of a branch per kind.
+ *  `file` left this table for a real picker (timeline.fill.file.tsx). */
 const TEXT_LIKE_INPUT: Partial<
   Record<TemplateBlock['kind'], { type?: string; placeholder?: string }>
 > = {
   number: { type: 'number' },
   date: { type: 'date' },
   time: { type: 'time' },
-  file: { placeholder: 'File name…' },
 };
 
 const LongTextInput = ({ value, onChange }: TextLikeProps) => (
@@ -135,6 +136,8 @@ const FieldInput = ({
   readonly value: string;
   readonly onChange: (value: string) => void;
 }) => {
+  if (block.kind === 'file')
+    return <FileInput value={value} onChange={onChange} />;
   if (block.kind === 'long-text')
     return <LongTextInput value={value} onChange={onChange} />;
   if (block.kind === 'signature')
@@ -185,3 +188,40 @@ export const TemplateFillField = ({
     </div>
   );
 };
+
+/** Shared rows share the width evenly — same split the printed page uses. */
+const ROW_GRID: Record<number, string> = {
+  2: 'grid grid-cols-2 gap-3',
+  3: 'grid grid-cols-3 gap-3',
+};
+
+/**
+ * The fill form's rows: same-width neighbours share a line (fillRows, the
+ * same rule the printed page uses), everything else stacks. One component
+ * so the timeline's edit form and the builder's preview cannot render
+ * capture differently.
+ */
+export const FillFormRows = ({
+  blocks,
+  values,
+  onChange,
+}: {
+  readonly blocks: readonly TemplateBlock[];
+  readonly values: Readonly<Record<string, string>>;
+  readonly onChange: (blockId: string, value: string) => void;
+}) => (
+  <>
+    {fillRows(blocks).map((row) => (
+      <div key={row[0]?.id} className={ROW_GRID[row.length] ?? undefined}>
+        {row.map((block) => (
+          <TemplateFillField
+            key={block.id}
+            block={block}
+            value={values[block.id] ?? ''}
+            onChange={(value) => onChange(block.id, value)}
+          />
+        ))}
+      </div>
+    ))}
+  </>
+);

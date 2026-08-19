@@ -29,6 +29,7 @@ export const Default: Story = {
         onAddEntryClick={() => undefined}
         onToggleEntry={() => undefined}
         onSaveEntryFields={() => undefined}
+        onOpenEntryDocument={() => undefined}
         onSaveIdentity={() => undefined}
         onCycleChannel={() => undefined}
       />

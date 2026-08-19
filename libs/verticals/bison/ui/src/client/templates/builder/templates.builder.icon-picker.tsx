@@ -2,7 +2,7 @@
  *  there's only ever a handful of choices. */
 import { useState } from 'react';
 import { Button, Popover, PopoverContent, PopoverTrigger, cn } from '@acme/ui';
-import { TemplateIconGlyph } from '../templates.icons';
+import { TemplateIconGlyph } from '../identity/templates.icons';
 import type { TemplateIcon } from '../templates.types';
 
 const ICONS: readonly TemplateIcon[] = [

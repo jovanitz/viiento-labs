@@ -21,6 +21,7 @@ export const Default: Story = {
     onAddClick: () => undefined,
     onToggleEntry: () => undefined,
     onSaveEntryFields: () => undefined,
+    onOpenEntryDocument: () => undefined,
   },
 };
 
@@ -32,6 +33,7 @@ export const EntryExpanded: Story = {
     onAddClick: () => undefined,
     onToggleEntry: () => undefined,
     onSaveEntryFields: () => undefined,
+    onOpenEntryDocument: () => undefined,
   },
 };
 
@@ -43,5 +45,6 @@ export const Empty: Story = {
     onAddClick: () => undefined,
     onToggleEntry: () => undefined,
     onSaveEntryFields: () => undefined,
+    onOpenEntryDocument: () => undefined,
   },
 };

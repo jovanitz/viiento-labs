@@ -12,14 +12,16 @@ import { toast } from '@acme/ui';
 import { TemplatesGalleryView } from './templates.gallery.view';
 import { TemplatePreviewView } from './templates.preview.view';
 import { TemplateBuilderContainer } from './builder/templates.builder.container';
-import { PrintLayoutContainer } from './print/templates.print.container';
+import { FormatsPrototype } from './document/formats/formats.prototype';
+import { TemplatesSectionTabs } from './templates.tabs';
 import type { EntryTemplate } from './templates.types';
+import type { DocumentFormat } from './document/document.format';
 
 type Screen =
   | { readonly kind: 'gallery' }
   | { readonly kind: 'preview'; readonly template: EntryTemplate }
   | { readonly kind: 'builder'; readonly template: EntryTemplate | undefined }
-  | { readonly kind: 'print'; readonly template: EntryTemplate };
+  | { readonly kind: 'formats' };
 
 const openTemplate = (template: EntryTemplate): Screen =>
   template.kind === 'default'
@@ -29,9 +31,13 @@ const openTemplate = (template: EntryTemplate): Screen =>
 export const TemplatesContainer = ({
   templates,
   onSaveTemplate,
+  formats,
+  onSaveFormat,
 }: {
   readonly templates: readonly EntryTemplate[];
   readonly onSaveTemplate: (template: EntryTemplate) => void;
+  readonly formats: readonly DocumentFormat[];
+  readonly onSaveFormat: (format: DocumentFormat) => void;
 }) => {
   const [screen, setScreen] = useState<Screen>({ kind: 'gallery' });
 
@@ -49,13 +55,21 @@ export const TemplatesContainer = ({
       />
     );
 
-  if (screen.kind === 'print')
+  if (screen.kind === 'formats')
     return (
-      <PrintLayoutContainer
-        template={screen.template}
-        onBack={() => setScreen({ kind: 'gallery' })}
-        onSaveTemplate={onSaveTemplate}
-      />
+      <div className="flex flex-col gap-4">
+        <TemplatesSectionTabs
+          active="formats"
+          onChange={(tab) =>
+            setScreen({ kind: tab === 'formats' ? 'formats' : 'gallery' })
+          }
+        />
+        <FormatsPrototype
+          formats={formats}
+          templates={templates}
+          onSaveFormat={onSaveFormat}
+        />
+      </div>
     );
 
   if (screen.kind === 'builder') {
@@ -65,20 +79,23 @@ export const TemplatesContainer = ({
         template={existing}
         onCancel={() => setScreen({ kind: 'gallery' })}
         onSave={save}
-        onOpenPrintLayout={
-          existing
-            ? () => setScreen({ kind: 'print', template: existing })
-            : undefined
-        }
       />
     );
   }
 
   return (
-    <TemplatesGalleryView
-      templates={templates}
-      onSelectTemplate={(template) => setScreen(openTemplate(template))}
-      onCreateNew={() => setScreen({ kind: 'builder', template: undefined })}
-    />
+    <div className="flex flex-col gap-4">
+      <TemplatesSectionTabs
+        active="templates"
+        onChange={(tab) =>
+          setScreen({ kind: tab === 'formats' ? 'formats' : 'gallery' })
+        }
+      />
+      <TemplatesGalleryView
+        templates={templates}
+        onSelectTemplate={(template) => setScreen(openTemplate(template))}
+        onCreateNew={() => setScreen({ kind: 'builder', template: undefined })}
+      />
+    </div>
   );
 };

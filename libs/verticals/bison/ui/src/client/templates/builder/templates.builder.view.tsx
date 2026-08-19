@@ -8,36 +8,48 @@
  * @screen Bison Manager / Client / Templates / Builder
  * @phase draft
  */
-import { ArrowLeft, Printer } from 'lucide-react';
+import { BackButton } from '../../back-button';
+import { Eye, Pencil } from 'lucide-react';
 import { Button, Input, Textarea } from '@acme/ui';
-import { BuilderPalette } from './palette/templates.builder.palette';
-import { BuilderCanvas } from './canvas/templates.builder.canvas';
+import { BuilderBody } from './templates.builder.body';
 import { TemplateIconPicker } from './templates.builder.icon-picker';
+import { TemplateColorPicker } from './templates.builder.color-picker';
 import type {
   FieldKind,
   TemplateBlock,
+  TemplateColor,
   TemplateIcon,
 } from '../templates.types';
 
 const HeaderActions = ({
   canSave,
+  previewing,
   onSave,
-  onOpenPrintLayout,
+  onTogglePreview,
 }: {
   readonly canSave: boolean;
+  readonly previewing: boolean;
   readonly onSave: () => void;
-  readonly onOpenPrintLayout?: (() => void) | undefined;
+  readonly onTogglePreview: () => void;
 }) => (
   <div className="flex gap-2">
-    {onOpenPrintLayout ? (
-      <Button
-        variant="outline"
-        onClick={onOpenPrintLayout}
-        className="flex-1 sm:flex-none"
-      >
-        <Printer /> Print layout
-      </Button>
-    ) : null}
+    {/* Wide screens keep the live preview pinned beside the editor, so
+        the toggle only exists where there is no room for both. */}
+    <Button
+      variant="outline"
+      onClick={onTogglePreview}
+      className="flex-1 sm:flex-none xl:hidden"
+    >
+      {previewing ? (
+        <>
+          <Pencil /> Edit
+        </>
+      ) : (
+        <>
+          <Eye /> Preview
+        </>
+      )}
+    </Button>
     <Button
       onClick={onSave}
       disabled={!canSave}
@@ -52,34 +64,33 @@ const Header = ({
   name,
   description,
   icon,
+  color,
   canSave,
   onNameChange,
   onDescriptionChange,
   onIconChange,
+  onColorChange,
   onCancel,
   onSave,
-  onOpenPrintLayout,
+  previewing,
+  onTogglePreview,
 }: {
   readonly name: string;
   readonly description: string;
   readonly icon: TemplateIcon;
+  readonly color: TemplateColor;
   readonly canSave: boolean;
   readonly onNameChange: (name: string) => void;
   readonly onDescriptionChange: (description: string) => void;
   readonly onIconChange: (icon: TemplateIcon) => void;
+  readonly onColorChange: (color: TemplateColor) => void;
   readonly onCancel: () => void;
   readonly onSave: () => void;
-  readonly onOpenPrintLayout?: (() => void) | undefined;
+  readonly previewing: boolean;
+  readonly onTogglePreview: () => void;
 }) => (
   <div className="flex flex-col gap-3">
-    <Button
-      variant="ghost"
-      size="sm"
-      onClick={onCancel}
-      className="-ml-2 w-fit text-muted-foreground"
-    >
-      <ArrowLeft /> Templates
-    </Button>
+    <BackButton label="Templates" onClick={onCancel} />
     <div className="flex flex-col gap-3 sm:flex-row sm:items-start">
       <div className="flex flex-1 items-start gap-3">
         <TemplateIconPicker icon={icon} onChange={onIconChange} />
@@ -99,12 +110,14 @@ const Header = ({
             rows={1}
             aria-label="Template description"
           />
+          <TemplateColorPicker color={color} onChange={onColorChange} />
         </div>
       </div>
       <HeaderActions
         canSave={canSave}
+        previewing={previewing}
         onSave={onSave}
-        onOpenPrintLayout={onOpenPrintLayout}
+        onTogglePreview={onTogglePreview}
       />
     </div>
   </div>
@@ -114,59 +127,66 @@ export const TemplateBuilderView = ({
   name,
   description,
   icon,
+  color,
   blocks,
   onNameChange,
   onDescriptionChange,
   onIconChange,
+  onColorChange,
   onInsertKind,
   onReorder,
   onChangeBlock,
   onRemoveBlock,
   onCancel,
   onSave,
-  onOpenPrintLayout,
+  previewing,
+  onTogglePreview,
 }: {
   readonly name: string;
   readonly description: string;
   readonly icon: TemplateIcon;
+  readonly color: TemplateColor;
   readonly blocks: readonly TemplateBlock[];
   readonly onNameChange: (name: string) => void;
   readonly onDescriptionChange: (description: string) => void;
   readonly onIconChange: (icon: TemplateIcon) => void;
+  readonly onColorChange: (color: TemplateColor) => void;
   readonly onInsertKind: (kind: FieldKind, atIndex: number) => void;
   readonly onReorder: (fromIndex: number, toIndex: number) => void;
   readonly onChangeBlock: (id: string, patch: Partial<TemplateBlock>) => void;
   readonly onRemoveBlock: (id: string) => void;
   readonly onCancel: () => void;
   readonly onSave: () => void;
-  readonly onOpenPrintLayout?: (() => void) | undefined;
+  /** Swaps the editor for the as-on-the-timeline preview. */
+  readonly previewing: boolean;
+  readonly onTogglePreview: () => void;
 }) => (
   <div className="flex flex-col gap-6">
     <Header
       name={name}
       description={description}
       icon={icon}
+      color={color}
       canSave={name.trim() !== '' && blocks.length > 0}
       onNameChange={onNameChange}
       onDescriptionChange={onDescriptionChange}
       onIconChange={onIconChange}
-      onOpenPrintLayout={onOpenPrintLayout}
+      onColorChange={onColorChange}
+      previewing={previewing}
+      onTogglePreview={onTogglePreview}
       onCancel={onCancel}
       onSave={onSave}
     />
-    <div className="flex flex-col gap-6 lg:flex-row">
-      <BuilderPalette
-        onAddBlock={(kind) => onInsertKind(kind, blocks.length)}
-      />
-      <BuilderCanvas
-        blocks={blocks}
-        onInsertKind={(kind, atIndex) =>
-          onInsertKind(kind as FieldKind, atIndex)
-        }
-        onReorder={onReorder}
-        onChangeBlock={onChangeBlock}
-        onRemoveBlock={onRemoveBlock}
-      />
-    </div>
+    <BuilderBody
+      name={name}
+      icon={icon}
+      color={color}
+      blocks={blocks}
+      previewing={previewing}
+      onInsertKind={onInsertKind}
+      onReorder={onReorder}
+      onChangeBlock={onChangeBlock}
+      onRemoveBlock={onRemoveBlock}
+    />
   </div>
 );

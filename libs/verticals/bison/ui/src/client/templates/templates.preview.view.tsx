@@ -7,9 +7,9 @@
  * @screen Bison Manager / Client / Templates / Preview
  * @phase draft
  */
-import { ArrowLeft } from 'lucide-react';
-import { Badge, Button, Stack } from '@acme/ui';
-import { TemplateIconGlyph } from './templates.icons';
+import { BackButton } from '../back-button';
+import { Badge, Stack } from '@acme/ui';
+import { TemplateIconBadge } from './identity/templates.icons';
 import { BlockKindGlyph } from './builder/palette/templates.block-icons';
 import { STRUCTURAL_KINDS } from './templates.types';
 import type { EntryTemplate, TemplateBlock } from './templates.types';
@@ -54,18 +54,15 @@ export const TemplatePreviewView = ({
   readonly onBack: () => void;
 }) => (
   <Stack gap="group" className="max-w-2xl">
-    <Button
-      variant="ghost"
-      size="sm"
-      onClick={onBack}
-      className="-ml-2 w-fit text-muted-foreground"
-    >
-      <ArrowLeft /> Templates
-    </Button>
+    <BackButton label="Templates" onClick={onBack} />
     <div className="flex items-center gap-3">
-      <div className="flex size-9 items-center justify-center rounded-md bg-muted text-muted-foreground">
-        <TemplateIconGlyph icon={template.icon} className="size-5" />
-      </div>
+      <TemplateIconBadge
+        icon={template.icon}
+        color={template.color}
+        rounded="md"
+        className="size-9"
+        glyphClassName="size-5"
+      />
       <div>
         <h1 className="text-lg font-semibold text-foreground">
           {template.name}

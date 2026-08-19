@@ -7,12 +7,12 @@
  * @screen Bison Manager / Client / Client Detail
  * @phase draft
  */
-import { ArrowLeft } from 'lucide-react';
-import { Button, Stack } from '@acme/ui';
+import { BackButton } from '../../back-button';
+import { Stack } from '@acme/ui';
 import { ClientIdentityHeader } from './client-identity.header';
 import type { ClientDraft } from './client-form.fields';
 import { TimelineView } from './timeline/timeline.view';
-import type { FillValues } from './timeline/timeline.fill.logic';
+import type { FillValues } from './timeline/fill/timeline.fill.logic';
 import type { TimelineVM } from './timeline/timeline.types';
 import type { ClientChannels, ClientRow } from '../clients.types';
 
@@ -24,6 +24,7 @@ export const ClientDetailView = ({
   onAddEntryClick,
   onToggleEntry,
   onSaveEntryFields,
+  onOpenEntryDocument,
   onSaveIdentity,
   onCycleChannel,
 }: {
@@ -34,18 +35,12 @@ export const ClientDetailView = ({
   readonly onAddEntryClick: () => void;
   readonly onToggleEntry: (id: string) => void;
   readonly onSaveEntryFields: (id: string, values: FillValues) => void;
+  readonly onOpenEntryDocument: (id: string) => void;
   readonly onSaveIdentity: (draft: ClientDraft) => void;
   readonly onCycleChannel: (channel: keyof ClientChannels) => void;
 }) => (
   <Stack gap="group" className="max-w-3xl">
-    <Button
-      variant="ghost"
-      size="sm"
-      onClick={onBack}
-      className="-ml-2 w-fit text-muted-foreground"
-    >
-      <ArrowLeft /> Clients
-    </Button>
+    <BackButton label="Clients" onClick={onBack} />
     <ClientIdentityHeader
       client={client}
       onSaveIdentity={onSaveIdentity}
@@ -57,6 +52,7 @@ export const ClientDetailView = ({
       onAddClick={onAddEntryClick}
       onToggleEntry={onToggleEntry}
       onSaveEntryFields={onSaveEntryFields}
+      onOpenEntryDocument={onOpenEntryDocument}
     />
   </Stack>
 );
