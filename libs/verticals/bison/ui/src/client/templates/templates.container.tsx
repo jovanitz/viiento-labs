@@ -10,7 +10,7 @@
 import { useState } from 'react';
 import { toast } from '@acme/ui';
 import { TemplatesGalleryView } from './templates.gallery.view';
-import { TemplatePreviewView } from './templates.preview.view';
+import { TemplatePreviewView } from './preview/templates.preview.view';
 import { TemplateBuilderContainer } from './builder/templates.builder.container';
 import { FormatsPrototype } from './document/formats/formats.prototype';
 import { TemplatesSectionTabs } from './templates.tabs';

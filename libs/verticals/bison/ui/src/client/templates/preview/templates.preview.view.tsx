@@ -7,12 +7,12 @@
  * @screen Bison Manager / Client / Templates / Preview
  * @phase draft
  */
-import { BackButton } from '../back-button';
+import { BackButton } from '../../back-button';
 import { Badge, Stack } from '@acme/ui';
-import { TemplateIconBadge } from './identity/templates.icons';
-import { BlockKindGlyph } from './builder/palette/templates.block-icons';
-import { STRUCTURAL_KINDS } from './templates.types';
-import type { EntryTemplate, TemplateBlock } from './templates.types';
+import { TemplateIconBadge } from '../identity/templates.icons';
+import { BlockKindGlyph } from '../builder/palette/templates.block-icons';
+import { STRUCTURAL_KINDS } from '../templates.types';
+import type { EntryTemplate, TemplateBlock } from '../templates.types';
 
 const BlockRow = ({ block }: { readonly block: TemplateBlock }) => {
   if (block.kind === 'section')
