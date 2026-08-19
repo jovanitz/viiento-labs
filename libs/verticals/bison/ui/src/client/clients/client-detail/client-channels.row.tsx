@@ -11,13 +11,13 @@ import { MessageCircle, Send } from 'lucide-react';
 import { Badge } from '@acme/ui';
 import type { ChannelStatus, ClientChannels } from '../clients.types';
 
-const CHANNEL_LABEL: Record<ChannelStatus, string> = {
+export const CHANNEL_LABEL: Record<ChannelStatus, string> = {
   verified: 'Verified',
   pending: 'Pending',
   not_connected: 'Not connected',
 };
 
-const CHANNEL_VARIANT: Record<
+export const CHANNEL_VARIANT: Record<
   ChannelStatus,
   'success' | 'warning' | 'secondary'
 > = {

@@ -23,6 +23,7 @@ import {
   AccountSwitcher,
   type AccountMode,
 } from './client.shell.account-switcher';
+import { initialsOf } from './clients/clients.logic';
 
 /**
  * Shared client-app page frame for the Bison Manager stories — the app the
@@ -115,23 +116,45 @@ const Nav = ({
   );
 };
 
+/** What the topbar shows about who's signed in. Kept as a prop so the
+ *  prototype's editable profile (Settings) is the same identity the
+ *  UserMenu displays. */
+export type ShellOwner = {
+  readonly name: string;
+  readonly email: string;
+  readonly photoUrl: string;
+};
+
+const DEFAULT_OWNER: ShellOwner = {
+  name: 'Marco Vega',
+  email: 'marco@northfade.mx',
+  photoUrl: '',
+};
+
 const Head = ({
   accountMode,
   onAccountModeChange,
+  owner,
 }: {
   readonly accountMode: AccountMode;
   readonly onAccountModeChange?: ((mode: AccountMode) => void) | undefined;
+  readonly owner: ShellOwner;
 }) => (
   <>
     <AccountSwitcher
       mode={accountMode}
       onModeChange={onAccountModeChange}
       org={ORGS[0]}
+      owner={{
+        name: owner.name,
+        fallback: initialsOf(owner.name) || '?',
+      }}
     />
     <TopbarActions>
       <UserMenu
-        name="Marco Vega"
-        email="marco@northfade.mx"
+        name={owner.name}
+        email={owner.email}
+        avatarSrc={owner.photoUrl || undefined}
         onSignOut={() => undefined}
       />
     </TopbarActions>
@@ -143,6 +166,7 @@ export const ClientShell = ({
   onNavigate,
   accountMode = 'individual',
   onAccountModeChange,
+  owner = DEFAULT_OWNER,
   children,
 }: {
   readonly active: ClientSection;
@@ -150,6 +174,8 @@ export const ClientShell = ({
   /** Defaults to individual — the account owner's own calendar. */
   readonly accountMode?: AccountMode;
   readonly onAccountModeChange?: (mode: AccountMode) => void;
+  /** Topbar identity; defaults to the fixture owner. */
+  readonly owner?: ShellOwner;
   readonly children: ReactNode;
 }) => (
   <AppShell
@@ -158,6 +184,7 @@ export const ClientShell = ({
       <Head
         accountMode={accountMode}
         onAccountModeChange={onAccountModeChange}
+        owner={owner}
       />
     }
     bottomNav={<MobileNav active={active} onNavigate={onNavigate} />}

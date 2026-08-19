@@ -15,6 +15,7 @@ import {
 } from '../clients/clients.logic';
 import { CLIENT_CONTACTS } from '../clients/clients.contacts.fixtures';
 import type { ClientsVM } from '../clients/clients.types';
+import type { OwnerProfile } from '../settings/settings.types';
 import { DAYS, dateAt, dateLabelOf } from './client.prototype.days';
 
 const realVisits: readonly DatedAppointment[] = DAYS.flatMap((day, dayIdx) =>
@@ -109,3 +110,13 @@ export const clientsVM: ClientsVM = deriveClientsVM(
   [...realVisits, ...extraVisits],
   CLIENT_CONTACTS,
 );
+
+/** The fixture account owner (see ACCOUNT_OWNER_NAME / the shell's
+ *  UserMenu — the three must agree until real auth exists). Phone is
+ *  invented fixture data, same spirit as CLIENT_CONTACTS. */
+export const OWNER: OwnerProfile = {
+  name: 'Marco Vega',
+  email: 'marco@northfade.mx',
+  phone: '+52 33 8765 4321',
+  photoUrl: '',
+};

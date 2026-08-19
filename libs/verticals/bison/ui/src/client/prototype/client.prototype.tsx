@@ -23,7 +23,7 @@
  * other just created.
  */
 import { useState } from 'react';
-import { Building2, Settings as SettingsIcon } from 'lucide-react';
+import { Building2 } from 'lucide-react';
 import { EmptyState, Toaster, toast } from '@acme/ui';
 import {
   ClientShell,
@@ -41,10 +41,12 @@ import type { DocumentFormat } from '../templates/document/document.format';
 import type { ClientDraft } from '../clients/client-detail/client-form.fields';
 import { addOrGetClient, vmFromClients } from '../clients/clients.logic';
 import type { ClientRow } from '../clients/clients.types';
+import { ClientSettingsContainer } from '../settings/settings.container';
+import type { OwnerProfile } from '../settings/settings.types';
 import { TemplatesContainer } from '../templates/templates.container';
 import { TEMPLATES } from '../templates/templates.fixtures';
 import type { EntryTemplate } from '../templates/templates.types';
-import { clientsVM } from './client.prototype.clients';
+import { OWNER, clientsVM } from './client.prototype.clients';
 
 const OrgPlaceholder = () => (
   <EmptyState
@@ -52,15 +54,6 @@ const OrgPlaceholder = () => (
     icon={<Building2 />}
     title="Organization view isn't designed yet"
     description="Everything prototyped so far is the individual account — your own calendar. Multi-staff scheduling and assignment for an organization land as their own, separate interface."
-  />
-);
-
-const SettingsPlaceholder = () => (
-  <EmptyState
-    className="max-w-3xl"
-    icon={<SettingsIcon />}
-    title="Settings isn't designed yet"
-    description="Agenda, Clients and Templates are prototyped so far; this one lands next."
   />
 );
 
@@ -72,6 +65,11 @@ type ClientsNav = {
   readonly onBackToClients: () => void;
   readonly clients: readonly ClientRow[];
   readonly onCreateClient: (draft: ClientDraft) => ClientRow;
+};
+
+type SettingsNav = {
+  readonly owner: OwnerProfile;
+  readonly onSaveOwner: (owner: OwnerProfile) => void;
 };
 
 type TemplatesNav = {
@@ -87,11 +85,13 @@ type TemplatesNav = {
   readonly onSaveFormat: (format: DocumentFormat) => void;
 };
 
+/** Everything the section router needs, in one bag (lint caps params at 4). */
+type PrototypeNav = ClientsNav & TemplatesNav & SettingsNav;
+
 const content = (
   accountMode: AccountMode,
   section: ClientSection,
-  clientsNav: ClientsNav,
-  templatesNav: TemplatesNav,
+  nav: PrototypeNav,
 ) => {
   const {
     selectedClientId,
@@ -99,7 +99,7 @@ const content = (
     onBackToClients,
     clients,
     onCreateClient,
-  } = clientsNav;
+  } = nav;
   if (accountMode === 'organization') return <OrgPlaceholder />;
   if (section === 'Agenda')
     return (
@@ -108,7 +108,7 @@ const content = (
         onCreateClient={(name) =>
           onCreateClient({ name, phone: '', photoUrl: '' })
         }
-        onOpenClient={clientsNav.onOpenClientByName}
+        onOpenClient={nav.onOpenClientByName}
       />
     );
   if (section === 'Clients') {
@@ -119,8 +119,8 @@ const content = (
       return (
         <ClientDetailContainer
           client={selected}
-          templates={templatesNav.templates}
-          formats={templatesNav.formats}
+          templates={nav.templates}
+          formats={nav.formats}
           onBack={onBackToClients}
         />
       );
@@ -135,13 +135,18 @@ const content = (
   if (section === 'Templates')
     return (
       <TemplatesContainer
-        templates={templatesNav.templates}
-        onSaveTemplate={templatesNav.onSaveTemplate}
-        formats={templatesNav.formats}
-        onSaveFormat={templatesNav.onSaveFormat}
+        templates={nav.templates}
+        onSaveTemplate={nav.onSaveTemplate}
+        formats={nav.formats}
+        onSaveFormat={nav.onSaveFormat}
       />
     );
-  return <SettingsPlaceholder />;
+  return (
+    <ClientSettingsContainer
+      profile={nav.owner}
+      onSaveProfile={nav.onSaveOwner}
+    />
+  );
 };
 
 const upsertTemplate = (
@@ -176,6 +181,7 @@ export const ClientPrototype = () => {
   const [clients, setClients] = useState<readonly ClientRow[]>(
     clientsVM.clients,
   );
+  const [owner, setOwner] = useState<OwnerProfile>(OWNER);
 
   // Switching sections (or account mode) always leaves the client detail
   // drill-down behind — coming back to Clients later should land on the
@@ -214,27 +220,24 @@ export const ClientPrototype = () => {
         onNavigate={navigate}
         accountMode={accountMode}
         onAccountModeChange={setAccountMode}
+        owner={owner}
       >
-        {content(
-          accountMode,
-          section,
-          {
-            onOpenClientByName: openClientByName,
-            selectedClientId,
-            onSelectClient: setSelectedClientId,
-            onBackToClients: () => setSelectedClientId(undefined),
-            clients,
-            onCreateClient: createClient,
-          },
-          {
-            templates,
-            onSaveTemplate: (template) =>
-              setTemplates((ts) => upsertTemplate(ts, template)),
-            formats,
-            onSaveFormat: (format) =>
-              setFormats((fs) => upsertFormat(fs, format)),
-          },
-        )}
+        {content(accountMode, section, {
+          onOpenClientByName: openClientByName,
+          selectedClientId,
+          onSelectClient: setSelectedClientId,
+          onBackToClients: () => setSelectedClientId(undefined),
+          clients,
+          onCreateClient: createClient,
+          templates,
+          onSaveTemplate: (template) =>
+            setTemplates((ts) => upsertTemplate(ts, template)),
+          formats,
+          onSaveFormat: (format) =>
+            setFormats((fs) => upsertFormat(fs, format)),
+          owner,
+          onSaveOwner: setOwner,
+        })}
       </ClientShell>
       <Toaster />
     </>
