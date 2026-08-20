@@ -32,6 +32,12 @@ export * from './billing/usage/entitlement-usage-reader';
 export * from './billing-ledger/in-memory/in-memory-charge-store';
 export * from './billing-ledger/in-memory/in-memory-payment-store';
 
+// File storage adapters: in-memory reference (browser-safe). The Supabase
+// Storage adapter (./storage/supabase-file-storage) authenticates with the
+// SECRET key, so it ships only through the node entry point.
+export * from './storage/in-memory-file-storage';
+export * from './storage/path-prefixed-file-storage';
+
 // Auth adapters
 export * from './auth/jwt-auth-provider';
 export * from './auth/fake-auth-provider';
