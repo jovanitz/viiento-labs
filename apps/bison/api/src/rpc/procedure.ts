@@ -82,6 +82,11 @@ const EXACT_TAG_STATUS: Readonly<Record<string, ApiErrorStatus>> = {
   // failure. 502 says "our dependency broke", so the client can offer a retry
   // instead of showing the user a nonsensical 409.
   'app/notification-failed': 502,
+  // Object storage down/unreachable is the same family: upstream, retryable.
+  'app/file-storage-failed': 502,
+  // A storagePath that isn't `clients/<id>/<id>` is a request-shape defect
+  // (or a probe) — 400, like a zod failure.
+  'app/file-path-invalid': 400,
 };
 
 /**

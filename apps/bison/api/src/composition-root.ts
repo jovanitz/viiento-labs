@@ -1,4 +1,4 @@
-import { systemClock, uuidGenerator } from '@acme/shared';
+import { noopLogger, systemClock, uuidGenerator } from '@acme/shared';
 import {
   makeAccessOrgDetailUseCases,
   makeCreateOrganizationUseCases,
@@ -12,6 +12,8 @@ import {
 import { createPostgresAccessStore } from '@acme/infrastructure-node';
 import { createApi } from './app';
 import { createApiProcedures } from './procedures';
+import { createBisonProcedures } from './procedures/bison';
+import { wireBison } from './wiring/bison';
 import type { ApiProcedure } from './rpc/procedure';
 import { wireAccess } from './wiring/access';
 import { toIdentityPurger } from './wiring/purger';
@@ -123,7 +125,11 @@ export const createApiRuntime = (config: ApiConfig): ApiRuntime => {
     clock,
     ids,
   });
+  // The bison CLIENT app's world (templates/clients/timeline/files) — its
+  // own store + storage, chosen on the same two axes as the access store.
+  const bison = wireBison(config);
   const procedures = [
+    ...createBisonProcedures({ bison, clock, ids, logger: noopLogger }),
     ...createApiProcedures({
       access,
       auditTrail,
@@ -168,6 +174,7 @@ export const createApiRuntime = (config: ApiConfig): ApiRuntime => {
       return result.ok ? result.value : { created: 0 };
     },
     close: async () => {
+      await bison.close();
       await store.close?.();
     },
   };

@@ -25,11 +25,17 @@ for (const file of ['.env', '.env.development']) {
  *   (omit both = dev stub: `Authorization: Bearer session-<preset>`).
  * - BOOTSTRAP_OWNER_EMAIL → ADR-0010 one-time owner bootstrap.
  */
+/** `VAR=` (explicit empty) means OFF: it beats the .env files — the only
+ *  way to force the in-memory dev stub while `.env.development` names the
+ *  local stack (real env always wins over files, but cannot be unset). */
+const blankIsOff = (value: unknown): unknown =>
+  value === '' ? undefined : value;
+
 const envSchema = z.object({
   PORT: z.coerce.number().int().min(1).max(65535).default(3333),
-  SUPABASE_DB_URL: z.string().min(1).optional(),
-  SUPABASE_URL: z.string().url().optional(),
-  SUPABASE_JWT_SECRET: z.string().min(16).optional(),
+  SUPABASE_DB_URL: z.preprocess(blankIsOff, z.string().min(1).optional()),
+  SUPABASE_URL: z.preprocess(blankIsOff, z.string().url().optional()),
+  SUPABASE_JWT_SECRET: z.preprocess(blankIsOff, z.string().min(16).optional()),
   /** Supabase SECRET key — admin provisioning for invitation activation. */
   SUPABASE_SECRET_KEY: z.string().min(8).optional(),
   BOOTSTRAP_OWNER_EMAIL: z.string().email().optional(),
@@ -111,7 +117,8 @@ const runtime = createApiRuntime({
     ? { authHookSecret: env.data.AUTH_HOOK_SECRET }
     : {}),
   // The dev ports .claude/launch.json actually serves: 4201 lab-dashboard,
-  // 4202 lab-client, 4203 bison-dashboard (4200/5173 are Vite's own defaults).
+  // 4202 lab-client, 4203 bison-dashboard, 4204 bison-client (4200/5173 are
+  // Vite's own defaults).
   corsOrigins: env.data.CORS_ORIGINS?.split(',').map((o) => o.trim()) ?? [
     'http://localhost:4200',
     'http://127.0.0.1:4200',
@@ -121,6 +128,8 @@ const runtime = createApiRuntime({
     'http://127.0.0.1:4202',
     'http://localhost:4203',
     'http://127.0.0.1:4203',
+    'http://localhost:4204',
+    'http://127.0.0.1:4204',
     'http://localhost:5173',
     'http://127.0.0.1:5173',
   ],

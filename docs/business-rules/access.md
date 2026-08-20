@@ -142,6 +142,26 @@ generated — they are behavior, not documentation:
 
 | Procedure (`POST /rpc/<name>`) | Required action | Summary |
 | --- | --- | --- |
+| `bison.templates.list` | — (any authenticated actor) | The account's template library, defaults first then customs by name. |
+| `bison.templates.get` | — (any authenticated actor) | One template, schema included. |
+| `bison.templates.create` | — (any authenticated actor) | Create a custom template: identity (name/icon/color) + the ordered capture schema. The schema is validated as a whole (labels, choice options, at least one capturing block). |
+| `bison.templates.update` | — (any authenticated actor) | Edit a CUSTOM template (identity and/or schema); shipped defaults are refused by the domain. |
+| `bison.clients.list` | — (any authenticated actor) | The account's client roster, by name. |
+| `bison.clients.get` | — (any authenticated actor) | One client's card (identity, phone, channels). |
+| `bison.clients.create` | — (any authenticated actor) | Add a client to the roster. Channels are born not_connected; the messaging feature verifies them later. |
+| `bison.clients.updateContact` | — (any authenticated actor) | Update a client's name and/or phone. |
+| `bison.timeline.list` | — (any authenticated actor) | A client's running record, newest first. |
+| `bison.timeline.log` | — (any authenticated actor) | Fill a template onto a client's timeline. Values are keyed by block id; the domain validates the whole fill (required, choices, unknown blocks) and reports every offender at once. |
+| `bison.files.attach` | — (any authenticated actor) | Store a captured file (image/document) in the account's bucket and return the encoded FileRef string — the value a `file` block holds. The client must exist in this account. |
+| `bison.files.url` | — (any authenticated actor) | Resolve a FileRef's storagePath to a short-lived signed URL. Only paths whose client exists in this account's world are signed. |
+| `bison.agenda.list` | — (any authenticated actor) | One day's appointments by start time, canceled included (they are history, not noise). |
+| `bison.agenda.book` | — (any authenticated actor) | Book a slot for a roster client (the name is denormalized from the record). Overlaps are legal — the Reorder modes are UI policy. |
+| `bison.agenda.reschedule` | — (any authenticated actor) | Move a confirmed appointment in place (date/start/duration) — a canceled one is off the books and must be re-booked. |
+| `bison.agenda.cancel` | — (any authenticated actor) | Take an appointment off the books (binary status — no limbo). |
+| `bison.agenda.visits` | — (any authenticated actor) | Confirmed-visit facts per client (count + latest) — what the roster shows next to each name. |
+| `bison.agenda.blocks.list` | — (any authenticated actor) | The account's blocked time (ranges and weekly recurrences). |
+| `bison.agenda.blocks.add` | — (any authenticated actor) | Block time: a date range (one day or a run) or a weekly recurrence (0 = Sunday). Every scheduling rule treats it as a wall. |
+| `bison.agenda.blocks.remove` | — (any authenticated actor) | Delete a block — a recurring one goes with its whole series. Idempotent. |
 | `access.current` | — (any authenticated actor) | The caller's current access snapshot: permissions, active grants, session. |
 | `audit.list` | `audit.read` | Read the append-only security audit trail. |
 | `account.disable` | `account.disable` | Disable an account; every session on it is denied from the next request. |
