@@ -1,5 +1,6 @@
 // Ports (abstractions the outside world must satisfy)
 export * from './ports/event-publisher';
+export * from './ports/file-storage';
 export * from './ports/auth';
 export * from './ports/api';
 export * from './ports/notifications';

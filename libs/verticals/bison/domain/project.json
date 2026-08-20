@@ -1,0 +1,21 @@
+{
+  "name": "bison-domain",
+  "$schema": "../../../../node_modules/nx/schemas/project-schema.json",
+  "sourceRoot": "libs/verticals/bison/domain/src",
+  "projectType": "library",
+  "tags": ["layer:domain", "vertical:bison"],
+  "targets": {
+    "lint": {
+      "executor": "nx:run-commands",
+      "options": {
+        "command": "eslint {projectRoot}"
+      }
+    },
+    "typecheck": {
+      "executor": "nx:run-commands",
+      "options": {
+        "command": "tsc -p libs/verticals/bison/domain/tsconfig.lib.json --noEmit"
+      }
+    }
+  }
+}
