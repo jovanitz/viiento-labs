@@ -22,9 +22,9 @@
  * "Create '<name>'" both add to the same list, and each must see what the
  * other just created.
  */
-import { useState } from 'react';
+import { useState, type ReactNode } from 'react';
 import { Building2, Settings as SettingsIcon } from 'lucide-react';
-import { EmptyState, Toaster, toast } from '@acme/ui';
+import { EmptyState, Toaster } from '@acme/ui';
 import {
   ClientShell,
   type AccountMode,
@@ -39,12 +39,17 @@ import {
 } from '../templates/document/document.format';
 import type { DocumentFormat } from '../templates/document/document.format';
 import type { ClientDraft } from '../clients/client-detail/client-form.fields';
-import { addOrGetClient, vmFromClients } from '../clients/clients.logic';
+import { vmFromClients } from '../clients/clients.logic';
 import type { ClientRow } from '../clients/clients.types';
 import { TemplatesContainer } from '../templates/templates.container';
 import { TEMPLATES } from '../templates/templates.fixtures';
 import type { EntryTemplate } from '../templates/templates.types';
 import { clientsVM } from './client.prototype.clients';
+import {
+  createClientRow,
+  openClient,
+  upsertTemplate,
+} from './client.prototype.roster';
 
 const OrgPlaceholder = () => (
   <EmptyState
@@ -65,6 +70,9 @@ const SettingsPlaceholder = () => (
 );
 
 type ClientsNav = {
+  /** When set (by the app), the Agenda section renders THIS — the wired
+   *  grid — instead of the fixture ScheduleSim. */
+  readonly wiredAgenda?: ReactNode;
   /** From an Agenda appointment straight to that client's record. */
   readonly onOpenClientByName: (name: string) => void;
   readonly selectedClientId: string | undefined;
@@ -72,6 +80,9 @@ type ClientsNav = {
   readonly onBackToClients: () => void;
   readonly clients: readonly ClientRow[];
   readonly onCreateClient: (draft: ClientDraft) => ClientRow;
+  /** When set (by the app), the Clients section renders THIS — the wired
+   *  container — instead of the fixture roster below. */
+  readonly wiredSection?: ReactNode;
 };
 
 type TemplatesNav = {
@@ -85,6 +96,9 @@ type TemplatesNav = {
    */
   readonly formats: readonly DocumentFormat[];
   readonly onSaveFormat: (format: DocumentFormat) => void;
+  /** When set (by the app), the Templates section renders THIS — the wired
+   *  container — instead of the fixture-lifted composition below. */
+  readonly wiredSection?: ReactNode;
 };
 
 const content = (
@@ -101,7 +115,8 @@ const content = (
     onCreateClient,
   } = clientsNav;
   if (accountMode === 'organization') return <OrgPlaceholder />;
-  if (section === 'Agenda')
+  if (section === 'Agenda') {
+    if (clientsNav.wiredAgenda) return clientsNav.wiredAgenda;
     return (
       <ScheduleSim
         clients={clients}
@@ -111,7 +126,11 @@ const content = (
         onOpenClient={clientsNav.onOpenClientByName}
       />
     );
+  }
   if (section === 'Clients') {
+    // The app injects the WIRED section here (store + gateway); absent —
+    // stories, the bare prototype — the fixture roster below still runs.
+    if (clientsNav.wiredSection) return clientsNav.wiredSection;
     const selected = selectedClientId
       ? clients.find((c) => c.id === selectedClientId)
       : undefined;
@@ -132,7 +151,8 @@ const content = (
       />
     );
   }
-  if (section === 'Templates')
+  if (section === 'Templates') {
+    if (templatesNav.wiredSection) return templatesNav.wiredSection;
     return (
       <TemplatesContainer
         templates={templatesNav.templates}
@@ -141,31 +161,21 @@ const content = (
         onSaveFormat={templatesNav.onSaveFormat}
       />
     );
+  }
   return <SettingsPlaceholder />;
 };
 
-const upsertTemplate = (
-  templates: readonly EntryTemplate[],
-  template: EntryTemplate,
-): readonly EntryTemplate[] =>
-  templates.some((t) => t.id === template.id)
-    ? templates.map((t) => (t.id === template.id ? template : t))
-    : [...templates, template];
-
-/** Agenda → client record. Appointments only carry a name (fixture shape),
- *  so resolve against the roster; an unknown name gets a toast instead of a
- *  dead click. */
-const openClient = (
-  clients: readonly ClientRow[],
-  name: string,
-  go: (id: string) => void,
-) => {
-  const client = clients.find((c) => c.name === name);
-  if (client) go(client.id);
-  else toast.error(`No client record for ${name}`);
-};
-
-export const ClientPrototype = () => {
+export const ClientPrototype = ({
+  agendaSection,
+  clientsSection,
+  templatesSection,
+}: {
+  /** When set, the matching section renders the wired container instead
+   *  of its fixture composition. Absent sections stay prototype. */
+  readonly agendaSection?: ReactNode;
+  readonly clientsSection?: ReactNode;
+  readonly templatesSection?: ReactNode;
+} = {}) => {
   const [section, setSection] = useState<ClientSection>('Agenda');
   const [accountMode, setAccountMode] = useState<AccountMode>('individual');
   const [selectedClientId, setSelectedClientId] = useState<string>();
@@ -192,18 +202,8 @@ export const ClientPrototype = () => {
     });
 
   const createClient = (draft: ClientDraft): ClientRow => {
-    const result = addOrGetClient(
-      clients,
-      draft.name,
-      draft.phone,
-      draft.photoUrl,
-    );
+    const result = createClientRow(clients, draft);
     setClients(result.clients);
-    toast.success(
-      result.created
-        ? `"${draft.name}" added to Clients`
-        : `${draft.name} is already a client`,
-    );
     return result.client;
   };
 
@@ -219,12 +219,14 @@ export const ClientPrototype = () => {
           accountMode,
           section,
           {
+            wiredAgenda: agendaSection,
             onOpenClientByName: openClientByName,
             selectedClientId,
             onSelectClient: setSelectedClientId,
             onBackToClients: () => setSelectedClientId(undefined),
             clients,
             onCreateClient: createClient,
+            wiredSection: clientsSection,
           },
           {
             templates,
@@ -233,6 +235,7 @@ export const ClientPrototype = () => {
             formats,
             onSaveFormat: (format) =>
               setFormats((fs) => upsertFormat(fs, format)),
+            wiredSection: templatesSection,
           },
         )}
       </ClientShell>

@@ -32,9 +32,29 @@
       "autoPort": false
     },
     {
+      "name": "bison-client",
+      "runtimeExecutable": "sh",
+      "runtimeArgs": [
+        "-c",
+        "cd apps/bison/client && VITE_DEV_AUTH=1 npx vite --port 4204 --host 127.0.0.1"
+      ],
+      "port": 4204,
+      "autoPort": false
+    },
+    {
       "name": "bison-api",
       "runtimeExecutable": "sh",
       "runtimeArgs": ["-c", "npx tsx watch apps/bison/api/src/main.ts"],
+      "port": 3333,
+      "autoPort": false
+    },
+    {
+      "name": "bison-api-devstub",
+      "runtimeExecutable": "sh",
+      "runtimeArgs": [
+        "-c",
+        "SUPABASE_DB_URL= SUPABASE_URL= SUPABASE_JWT_SECRET= npx tsx watch apps/bison/api/src/main.ts"
+      ],
       "port": 3333,
       "autoPort": false
     },

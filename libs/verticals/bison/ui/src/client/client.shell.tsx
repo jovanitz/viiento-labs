@@ -115,12 +115,25 @@ const Nav = ({
   );
 };
 
+/** Signed-in identity for the topbar menu — the app passes the real
+ *  session; the prototype/stories fall back to the fixture person. */
+export type ShellUser = { readonly name: string; readonly email: string };
+
+const FIXTURE_USER: ShellUser = {
+  name: 'Marco Vega',
+  email: 'marco@northfade.mx',
+};
+
 const Head = ({
   accountMode,
   onAccountModeChange,
+  user,
+  onSignOut,
 }: {
   readonly accountMode: AccountMode;
   readonly onAccountModeChange?: ((mode: AccountMode) => void) | undefined;
+  readonly user?: ShellUser | undefined;
+  readonly onSignOut?: (() => void) | undefined;
 }) => (
   <>
     <AccountSwitcher
@@ -130,9 +143,9 @@ const Head = ({
     />
     <TopbarActions>
       <UserMenu
-        name="Marco Vega"
-        email="marco@northfade.mx"
-        onSignOut={() => undefined}
+        name={(user ?? FIXTURE_USER).name}
+        email={(user ?? FIXTURE_USER).email}
+        onSignOut={onSignOut ?? (() => undefined)}
       />
     </TopbarActions>
   </>
@@ -143,6 +156,8 @@ export const ClientShell = ({
   onNavigate,
   accountMode = 'individual',
   onAccountModeChange,
+  user,
+  onSignOut,
   children,
 }: {
   readonly active: ClientSection;
@@ -150,6 +165,9 @@ export const ClientShell = ({
   /** Defaults to individual — the account owner's own calendar. */
   readonly accountMode?: AccountMode;
   readonly onAccountModeChange?: (mode: AccountMode) => void;
+  /** The signed-in person; absent — stories — the fixture identity shows. */
+  readonly user?: ShellUser | undefined;
+  readonly onSignOut?: (() => void) | undefined;
   readonly children: ReactNode;
 }) => (
   <AppShell
@@ -158,6 +176,8 @@ export const ClientShell = ({
       <Head
         accountMode={accountMode}
         onAccountModeChange={onAccountModeChange}
+        user={user}
+        onSignOut={onSignOut}
       />
     }
     bottomNav={<MobileNav active={active} onNavigate={onNavigate} />}

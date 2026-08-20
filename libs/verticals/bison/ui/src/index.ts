@@ -28,3 +28,15 @@ export * from './dashboard/settings/settings.container';
 export * from './dashboard/audit/audit.container';
 export * from './dashboard/permissions/permissions.container';
 export * from './dashboard/org-detail/org-detail.container';
+
+// The business-facing CLIENT app (individual account). The navigable
+// prototype hosts the sections; wired ones are injected by the app as they
+// graduate from fixtures to the bison.* RPC surface. Clients is wired.
+export { ClientPrototype } from './client/prototype/client.prototype';
+export { ClientShell } from './client/client.shell';
+export type { AccountMode, ClientSection } from './client/client.shell';
+export { RequireClientSession } from './client/gate/gate.container';
+export * from './client/di';
+export { ClientsContainer } from './client/clients/wired/clients.container';
+export { TemplatesSectionContainer } from './client/templates/wired/templates.section.container';
+export { ScheduleContainer } from './client/schedule/wired/schedule.container';

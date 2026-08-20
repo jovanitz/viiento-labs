@@ -28,6 +28,10 @@ import {
 export type LoginVM = {
   readonly email: string;
   readonly password: string;
+  /** Card identity — defaults keep the dashboard's staff copy, so the
+   *  client app can reuse this approved view with its own words. */
+  readonly title?: string | undefined;
+  readonly description?: string | undefined;
   readonly busy: boolean;
   /** `| undefined` is explicit: the repo runs `exactOptionalPropertyTypes`. */
   readonly error?: string | undefined;
@@ -115,8 +119,10 @@ export const LoginView = ({
         <span className="flex size-11 items-center justify-center rounded-xl bg-primary text-primary-foreground">
           <Pill className="size-5" />
         </span>
-        <CardTitle>Bison Manager</CardTitle>
-        <CardDescription>Sign in to the staff console.</CardDescription>
+        <CardTitle>{vm.title ?? 'Bison Manager'}</CardTitle>
+        <CardDescription>
+          {vm.description ?? 'Sign in to the staff console.'}
+        </CardDescription>
       </CardHeader>
       <CardContent className="flex flex-col gap-4">
         <Notices vm={vm} />
