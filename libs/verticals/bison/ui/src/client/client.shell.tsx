@@ -23,6 +23,7 @@ import {
   AccountSwitcher,
   type AccountMode,
 } from './client.shell.account-switcher';
+import { initialsOf } from './clients/clients.logic';
 
 /**
  * Shared client-app page frame for the Bison Manager stories — the app the
@@ -140,6 +141,9 @@ const Head = ({
       mode={accountMode}
       onModeChange={onAccountModeChange}
       org={ORGS[0]}
+      {...(user
+        ? { owner: { name: user.name, fallback: initialsOf(user.name) || '?' } }
+        : {})}
     />
     <TopbarActions>
       <UserMenu

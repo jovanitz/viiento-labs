@@ -40,6 +40,18 @@ export const toClientRows = (
   return [...roster, ...pending.filter((p) => !known.has(p.name))];
 };
 
+/** Individual mode: the booking is implicitly the OWNER's — the real
+ *  session name replaces the prototype's fixture person when known. */
+export const bookAsOwner = (
+  store: AgendaStore,
+  ownerName: string | undefined,
+  appointment: NewAppointment,
+) =>
+  bookVia(store, {
+    ...appointment,
+    ...(ownerName !== undefined ? { staffName: ownerName } : {}),
+  });
+
 export const bookVia = async (
   store: AgendaStore,
   appointment: NewAppointment,

@@ -1,13 +1,13 @@
 import { useEffect, useMemo, useState } from 'react';
 import { toast } from '@acme/ui';
 import { localDate } from '../../store/agenda-store';
-import { useAgendaStore, useStore } from '../../store/hooks';
+import { useAgendaStore, useSessionOwnerName, useStore } from '../../store/hooks';
 import { ScheduleView } from '../schedule.view';
 import type { ClientRow } from '../../clients/clients.types';
 import {
   applyVia,
   blockVia,
-  bookVia,
+  bookAsOwner,
   cancelVia,
   optimisticRow,
   removeBlockVia,
@@ -31,6 +31,7 @@ export const ScheduleContainer = ({
   readonly onOpenClient?: ((clientId: string) => void) | undefined;
 } = {}) => {
   const store = useAgendaStore();
+  const ownerName = useSessionOwnerName();
   const day = useStore(store, (s) => s.day);
   const clients = useStore(store, (s) => s.clients);
   const loading = useStore(store, (s) => s.loading);
@@ -68,7 +69,9 @@ export const ScheduleContainer = ({
     <ScheduleView
       vm={vm}
       onSelectDay={(id) => void store.getState().load(id)}
-      onCreateAppointment={(appointment) => void bookVia(store, appointment)}
+      onCreateAppointment={(appointment) =>
+        void bookAsOwner(store, ownerName, appointment)
+      }
       onCancelAppointment={(id) => void cancelVia(store, id)}
       onOpenClient={(clientName) => {
         const client = (clients ?? []).find((c) => c.name === clientName);

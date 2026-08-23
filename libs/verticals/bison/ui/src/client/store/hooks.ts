@@ -1,4 +1,4 @@
-import { useMemo } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { useStore } from 'zustand';
 import { useClientUseCases } from '../di';
 import { createAgendaStore, type AgendaStore } from './agenda-store';
@@ -43,6 +43,26 @@ export const useIdentityStore = (): IdentityStore => {
 export const useClientGateStore = (): ClientGateStore => {
   const { access } = useClientUseCases();
   return useMemo(() => createClientGateStore({ access }), [access]);
+};
+
+/** The signed-in owner's display name — what individual-mode records
+ *  (booking staffName) and the account switcher show. Undefined while the
+ *  session loads or in DI-less stories. */
+export const useSessionOwnerName = (): string | undefined => {
+  const { access } = useClientUseCases();
+  const [name, setName] = useState<string | undefined>();
+  useEffect(() => {
+    let active = true;
+    void access.getSession().then((session) => {
+      if (!active || !session.ok) return;
+      const { displayName, email } = session.value.user;
+      setName(displayName ?? email ?? undefined);
+    });
+    return () => {
+      active = false;
+    };
+  }, [access]);
+  return name;
 };
 
 /** Re-export zustand's selector hook so components import it from one place. */

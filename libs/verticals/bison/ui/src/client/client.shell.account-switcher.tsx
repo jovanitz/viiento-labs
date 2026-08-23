@@ -16,26 +16,28 @@ import {
  *  interface). Defaults to individual on open; see client.prototype.tsx. */
 export type AccountMode = 'individual' | 'organization';
 
-/** The account owner — matches UserMenu's identity in client.shell.tsx until
- *  real auth exists. In individual mode, every booking is implicitly theirs
- *  (see ACCOUNT_OWNER_NAME in
- *  schedule/new-appointment/new-appointment.form.tsx). */
-export const ACCOUNT_OWNER = { name: 'Marco Vega', fallback: 'MV' };
+/** The switcher's "individual" identity. */
+export type AccountOwner = { readonly name: string; readonly fallback: string };
+
+/** Fixture owner — stories and the bare prototype only; the app passes the
+ *  signed-in session's identity. In individual mode, every booking is
+ *  implicitly the owner's (see new-appointment.form.tsx). */
+export const ACCOUNT_OWNER: AccountOwner = { name: 'Marco Vega', fallback: 'MV' };
 
 const logoClass = 'rounded-md bg-primary text-primary-foreground';
 
 const IndividualRow = ({
+  owner,
   active,
   onSelect,
 }: {
+  readonly owner: AccountOwner;
   readonly active: boolean;
   readonly onSelect: () => void;
 }) => (
   <DropdownMenuItem className="gap-2" onSelect={onSelect}>
-    <Avatar size="sm" fallback={ACCOUNT_OWNER.fallback} className={logoClass} />
-    <span className="flex-1 truncate text-sm font-medium">
-      {ACCOUNT_OWNER.name}
-    </span>
+    <Avatar size="sm" fallback={owner.fallback} className={logoClass} />
+    <span className="flex-1 truncate text-sm font-medium">{owner.name}</span>
     {active ? <Check className="size-4 shrink-0 text-primary" /> : null}
   </DropdownMenuItem>
 );
@@ -77,12 +79,15 @@ export const AccountSwitcher = ({
   mode,
   onModeChange,
   org,
+  owner = ACCOUNT_OWNER,
 }: {
   readonly mode: AccountMode;
   readonly onModeChange?: ((mode: AccountMode) => void) | undefined;
   readonly org: Org;
+  /** The signed-in owner; stories fall back to the fixture. */
+  readonly owner?: AccountOwner;
 }) => {
-  const current = mode === 'individual' ? ACCOUNT_OWNER : org;
+  const current = mode === 'individual' ? owner : org;
   return (
     <DropdownMenu>
       <DropdownMenuTrigger
@@ -100,6 +105,7 @@ export const AccountSwitcher = ({
           Individual
         </DropdownMenuLabel>
         <IndividualRow
+          owner={owner}
           active={mode === 'individual'}
           onSelect={() => onModeChange?.('individual')}
         />
