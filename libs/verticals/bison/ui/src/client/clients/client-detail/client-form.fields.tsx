@@ -3,10 +3,10 @@
  * "Edit client" (client-identity.header.tsx, prefilled from an existing
  * client) and "+ New client" (clients.view.tsx, blank draft), so the photo
  * picker's real file-input behavior isn't duplicated between the two.
- * The photo field simulates picking an image from the device's own
- * gallery/camera — a real `<input type="file">`, previewed via a local
- * blob URL — rather than pasting a URL. No upload happens, but the
- * interaction (open the picker, pick a file, see it applied) is real.
+ * The photo field picks an image from the device's own gallery/camera — a
+ * real `<input type="file">`, read into a data URL that both previews
+ * locally AND carries the bytes to Save, where the flow uploads them and
+ * persists only the storage path (same staging as captured fill files).
  */
 import { useRef } from 'react';
 import type { ChangeEvent } from 'react';
@@ -45,7 +45,12 @@ const PhotoPicker = ({
   const inputRef = useRef<HTMLInputElement>(null);
   const pickFile = (e: ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
-    if (file) onPick(URL.createObjectURL(file));
+    if (!file) return;
+    const reader = new FileReader();
+    reader.onload = () => {
+      if (typeof reader.result === 'string') onPick(reader.result);
+    };
+    reader.readAsDataURL(file);
   };
   return (
     <div className="relative w-fit">

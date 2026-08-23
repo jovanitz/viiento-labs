@@ -1,5 +1,9 @@
 import { type Brand, type Result, err, ok } from '@acme/shared';
-import { invalidClientId, invalidClientName } from './errors';
+import {
+  invalidClientId,
+  invalidClientName,
+  invalidClientPhoto,
+} from './errors';
 import type { ClientDomainError } from './errors';
 
 /**
@@ -42,7 +46,9 @@ export type Client = {
   readonly name: string;
   /** Empty when there's none on file — consumers render a fallback. */
   readonly phone: string;
-  readonly photoUrl?: string | undefined;
+  /** Opaque storage path (`clients/<id>/<fileId>`) — never a URL; readers
+   *  resolve a short-lived signed URL at the edge. Absent = no photo. */
+  readonly photoPath?: string | undefined;
   readonly channels: ClientChannels;
   readonly createdAt: string;
   readonly updatedAt: string;
@@ -87,6 +93,24 @@ export const createClient = (input: {
 export type ClientContactChanges = {
   readonly name?: string;
   readonly phone?: string;
+  /** A stored path under THIS client's own prefix; '' clears the photo. */
+  readonly photoPath?: string;
+};
+
+const makePhotoPath = (
+  client: Client,
+  raw: string,
+): Result<string | undefined, ClientDomainError> => {
+  if (raw === '') return ok(undefined);
+  const pattern = new RegExp(`^clients/${client.id}/[^/]+$`);
+  if (!pattern.test(raw)) {
+    return err(
+      invalidClientPhoto(
+        `Photo path must live under clients/${client.id}/ — got ${raw}.`,
+      ),
+    );
+  }
+  return ok(raw);
 };
 
 export const updateClientContact = (
@@ -96,10 +120,16 @@ export const updateClientContact = (
 ): Result<Client, ClientDomainError> => {
   const name = makeName(changes.name ?? client.name);
   if (!name.ok) return err(name.error);
+  const photoPath =
+    changes.photoPath === undefined
+      ? ok(client.photoPath)
+      : makePhotoPath(client, changes.photoPath);
+  if (!photoPath.ok) return err(photoPath.error);
   return ok({
     ...client,
     name: name.value,
     phone: (changes.phone ?? client.phone).trim(),
+    photoPath: photoPath.value,
     updatedAt: occurredAt,
   });
 };

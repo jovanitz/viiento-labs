@@ -22,12 +22,25 @@ export const createInMemoryFileStorage = (): InMemoryFileStorage => {
       objects.set(path, { bytes, mime });
       return ok(undefined);
     },
-    getSignedUrl: async ({ path, expiresInSeconds }) => {
-      if (!objects.has(path)) {
+    getSignedUrl: async ({ path }) => {
+      const object = objects.get(path);
+      if (!object) {
         return err(fileStorageFailed(`No object at ${path}.`));
       }
-      return ok(`memory://${path}?expires=${expiresInSeconds}`);
+      // A data URL actually SERVES the object, so dev previews/downloads
+      // behave like the real adapter's signed URLs (expiry aside).
+      let binary = '';
+      for (const byte of object.bytes) binary += String.fromCharCode(byte);
+      const base64 =
+        typeof btoa === 'function'
+          ? btoa(binary)
+          : Buffer.from(object.bytes).toString('base64');
+      return ok(`data:${object.mime};base64,${base64}`);
     },
+    // No HTTP endpoint exists for a browser to PUT to — callers fall back
+    // to uploading through the API (`put`).
+    createSignedUploadUrl: async () =>
+      err(fileStorageFailed('Direct uploads need real object storage.')),
     remove: async (path) => {
       if (!objects.delete(path)) {
         return err(fileStorageFailed(`No object at ${path}.`));

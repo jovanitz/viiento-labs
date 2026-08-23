@@ -1,18 +1,17 @@
 import { type Result, err, ok } from '@acme/shared';
+import type { ClientContactChanges, FillValues } from '@acme/bison-domain';
+import type { BisonGatewayError } from '../../client/gateway';
+import type { BisonClientFlowDeps } from './deps';
+import { storeClientPhoto, storeFillFiles } from './files/fill-files';
+import { toDays, toEntryVM, toRowVM } from './clients.vm';
 import type {
-  ClientContactChanges,
-  FillValues,
-  TemplateColor,
-  TemplateIcon,
-} from '@acme/bison-domain';
-import type { VisitSummaryDto } from '../../agenda/dto';
-import type { ClientDto } from '../../clients/dto';
-import type { TemplateDto } from '../../templates/dto';
-import type { EntryDto } from '../../timeline/dto';
-import type {
-  BisonClientGateway,
-  BisonGatewayError,
-} from '../../client/gateway';
+  ClientDetailVM,
+  ClientRowVM,
+  ClientsVM,
+  TimelineEntryVM,
+} from './clients.vm';
+
+export * from './clients.vm';
 
 /**
  * The Clients controller: HEADLESS orchestration for the client app's
@@ -22,134 +21,7 @@ import type {
  * `Result`. No React, no browser — a React store and a future MCP server
  * drive the SAME functions (see registry.ts).
  */
-export type BisonClientFlowDeps = {
-  readonly gateway: BisonClientGateway;
-};
-
-export type ClientRowVM = {
-  readonly id: string;
-  readonly name: string;
-  readonly initials: string;
-  readonly photoUrl?: string | undefined;
-  readonly phone: string;
-  readonly channels: ClientDto['channels'];
-  /** Appointments aren't modeled yet, so visit facts render their empty
-   *  fallbacks (0 / '') — honest placeholders, not invented history. */
-  readonly visitCount: number;
-  readonly latestVisitLabel: string;
-};
-
-export type ClientsVM = {
-  readonly clients: ReadonlyArray<ClientRowVM>;
-  readonly summary?: string | undefined;
-  readonly empty: boolean;
-};
-
-export type TimelineEntryVM = {
-  readonly id: string;
-  readonly templateId: string;
-  readonly templateName: string;
-  readonly icon: TemplateIcon;
-  readonly color: TemplateColor;
-  /** ISO instant — the UI turns it into a Date at the edge. */
-  readonly at: string;
-  /** Preformatted — e.g. "9:30 AM". */
-  readonly timeLabel: string;
-  readonly summary: string;
-  /** blockId rides along so consumers can match values back to the schema
-   *  (positional matching breaks — the backend skips empty optionals). */
-  readonly fields: ReadonlyArray<{
-    readonly blockId: string;
-    readonly label: string;
-    readonly value: string;
-  }>;
-};
-
-export type TimelineDayVM = {
-  /** Preformatted — e.g. "Monday, August 3". */
-  readonly dateLabel: string;
-  /** Newest first. */
-  readonly entries: ReadonlyArray<TimelineEntryVM>;
-};
-
-export type ClientDetailVM = {
-  readonly client: ClientRowVM;
-  /** Newest day first. */
-  readonly days: ReadonlyArray<TimelineDayVM>;
-  /** The template library, for the add-entry picker. */
-  readonly templates: ReadonlyArray<TemplateDto>;
-  readonly timelineEmpty: boolean;
-};
-
-/** e.g. "Mon, Aug 3" — noon-anchored so the label can't shear a day. */
-const shortDateLabel = (date: string): string =>
-  new Date(`${date}T12:00:00`).toLocaleDateString('en-US', {
-    weekday: 'short',
-    month: 'short',
-    day: 'numeric',
-  });
-
-/** "Mon, Aug 3 · Classic cut" — bookings carry no service since 2026-08-11,
- *  so the label degrades to the date alone, never a dangling separator. */
-const visitLabel = (visit: VisitSummaryDto | undefined): string => {
-  if (!visit) return '';
-  const date = shortDateLabel(visit.latestDate);
-  return visit.latestService ? `${date} · ${visit.latestService}` : date;
-};
-
-const toRowVM = (client: ClientDto, visit?: VisitSummaryDto): ClientRowVM => ({
-  id: client.id,
-  name: client.name,
-  initials: client.initials,
-  photoUrl: client.photoUrl,
-  phone: client.phone,
-  channels: client.channels,
-  visitCount: visit?.visitCount ?? 0,
-  latestVisitLabel: visitLabel(visit),
-});
-
-const timeLabel = (iso: string): string =>
-  new Date(iso).toLocaleTimeString('en-US', {
-    hour: 'numeric',
-    minute: '2-digit',
-  });
-
-const dayLabel = (iso: string): string =>
-  new Date(iso).toLocaleDateString('en-US', {
-    weekday: 'long',
-    month: 'long',
-    day: 'numeric',
-  });
-
-const toEntryVM = (entry: EntryDto): TimelineEntryVM => ({
-  id: entry.id,
-  templateId: entry.templateId,
-  templateName: entry.templateName,
-  icon: entry.icon,
-  color: entry.color,
-  at: entry.at,
-  timeLabel: timeLabel(entry.at),
-  summary: entry.summary,
-  fields: entry.fields,
-});
-
-/** Group newest-first entries into labeled days (order preserved). */
-const toDays = (
-  entries: ReadonlyArray<EntryDto>,
-): ReadonlyArray<TimelineDayVM> => {
-  const days: { key: string; day: TimelineDayVM }[] = [];
-  for (const entry of entries) {
-    const key = new Date(entry.at).toDateString();
-    const last = days[days.length - 1];
-    const vm = toEntryVM(entry);
-    if (last && last.key === key) {
-      last.day = { ...last.day, entries: [...last.day.entries, vm] };
-    } else {
-      days.push({ key, day: { dateLabel: dayLabel(entry.at), entries: [vm] } });
-    }
-  }
-  return days.map(({ day }) => day);
-};
+export type { BisonClientFlowDeps } from './deps';
 
 /** Query: the roster with real visit facts (count + latest, confirmed
  *  appointments only) and its one-line summary. */
@@ -196,34 +68,87 @@ export const loadClientDetail = async (
   });
 };
 
-/** Command: add a client to the roster. */
-export const createClient = (
+/** Command: add a client to the roster. A picked photo (raw data URL)
+ *  uploads AFTER the row exists — its storage path lives under the new
+ *  client's own prefix — so a failed upload leaves a photo-less client
+ *  and a visible error, never a phantom row. */
+export const createClient = async (
   deps: BisonClientFlowDeps,
-  input: { readonly name: string; readonly phone?: string },
-): Promise<Result<ClientRowVM, BisonGatewayError>> =>
-  deps.gateway.clients
-    .create(input)
-    .then((result) => (result.ok ? ok(toRowVM(result.value)) : result));
+  input: {
+    readonly name: string;
+    readonly phone?: string;
+    readonly photoDataUrl?: string;
+  },
+): Promise<Result<ClientRowVM, BisonGatewayError>> => {
+  const created = await deps.gateway.clients.create({
+    name: input.name,
+    ...(input.phone !== undefined ? { phone: input.phone } : {}),
+  });
+  if (!created.ok) return created;
+  if (input.photoDataUrl === undefined) return ok(toRowVM(created.value));
+  return setClientPhoto(deps, created.value.id, input.photoDataUrl);
+};
 
-/** Command: update a client's contact card (name and/or phone). */
-export const updateClientContact = (
+const setClientPhoto = async (
   deps: BisonClientFlowDeps,
-  input: { readonly id: string; readonly changes: ClientContactChanges },
-): Promise<Result<ClientRowVM, BisonGatewayError>> =>
-  deps.gateway.clients
-    .updateContact(input)
+  clientId: string,
+  photoDataUrl: string,
+): Promise<Result<ClientRowVM, BisonGatewayError>> => {
+  const stored = await storeClientPhoto(deps, clientId, photoDataUrl);
+  if (!stored.ok) return err(stored.error);
+  const updated = await deps.gateway.clients.updateContact({
+    id: clientId,
+    changes: { photoPath: stored.value },
+  });
+  return updated.ok ? ok(toRowVM(updated.value)) : updated;
+};
+
+/** Command: update a client's contact card. A newly picked photo rides in
+ *  as a raw data URL and is uploaded first (same staging as fill files);
+ *  the row then persists only the storage path. */
+export const updateClientContact = async (
+  deps: BisonClientFlowDeps,
+  input: {
+    readonly id: string;
+    readonly changes: ClientContactChanges & {
+      readonly photoDataUrl?: string;
+    };
+  },
+): Promise<Result<ClientRowVM, BisonGatewayError>> => {
+  const { photoDataUrl, ...contact } = input.changes;
+  const changes: ClientContactChanges = { ...contact };
+  if (photoDataUrl !== undefined) {
+    const stored = await storeClientPhoto(deps, input.id, photoDataUrl);
+    if (!stored.ok) return err(stored.error);
+    return deps.gateway.clients
+      .updateContact({
+        id: input.id,
+        changes: { ...changes, photoPath: stored.value },
+      })
+      .then((result) => (result.ok ? ok(toRowVM(result.value)) : result));
+  }
+  return deps.gateway.clients
+    .updateContact({ id: input.id, changes })
     .then((result) => (result.ok ? ok(toRowVM(result.value)) : result));
+};
 
 /** Command: fill a template onto the client's timeline (one shot — the
- *  record is append-only; corrections arrive as new entries). */
-export const logTimelineEntry = (
+ *  record is append-only; corrections arrive as new entries). Captured
+ *  files still carrying their bytes are uploaded first and logged as
+ *  FileRef values (see fill-files.ts). */
+export const logTimelineEntry = async (
   deps: BisonClientFlowDeps,
   input: {
     readonly clientId: string;
     readonly templateId: string;
     readonly values: FillValues;
   },
-): Promise<Result<TimelineEntryVM, BisonGatewayError>> =>
-  deps.gateway.timeline
-    .log(input)
-    .then((result) => (result.ok ? ok(toEntryVM(result.value)) : result));
+): Promise<Result<TimelineEntryVM, BisonGatewayError>> => {
+  const values = await storeFillFiles(deps, input.clientId, input.values);
+  if (!values.ok) return err(values.error);
+  const logged = await deps.gateway.timeline.log({
+    ...input,
+    values: values.value,
+  });
+  return logged.ok ? ok(toEntryVM(logged.value)) : logged;
+};

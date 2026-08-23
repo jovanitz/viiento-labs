@@ -44,7 +44,7 @@ export const clientFromRow = (row: Row): Client => ({
   id: row['id'] as ClientId,
   name: row['name'] as string,
   phone: row['phone'] as string,
-  photoUrl: (row['photo_url'] as string | null) ?? undefined,
+  photoPath: (row['photo_path'] as string | null) ?? undefined,
   channels: row['channels'] as ClientChannels,
   createdAt: isoOf(row['created_at'] as Date),
   updatedAt: isoOf(row['updated_at'] as Date),

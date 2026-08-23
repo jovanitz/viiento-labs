@@ -8,6 +8,8 @@
  * `@phase draft`.
  */
 import { useState } from 'react';
+import { FileStack } from 'lucide-react';
+import { EmptyState } from '@acme/ui';
 import { FormatsView } from './formats.view';
 import { documentPreview } from '../document.compose';
 import { toggleMark, toggleToken } from '../document.format';
@@ -34,7 +36,17 @@ export const FormatsPrototype = ({
   const previewTemplate = [...templates].sort(
     (a, b) => b.blocks.length - a.blocks.length,
   )[0];
-  if (!selected || !previewTemplate) return null;
+  // The preview renders a REAL template — with none yet there is nothing
+  // honest to show, so say so instead of a blank tab.
+  if (!selected || !previewTemplate) {
+    return (
+      <EmptyState
+        icon={<FileStack />}
+        title="Nothing to preview yet"
+        description="Formats dress up your templates as printable documents. Create a template first and its preview will appear here."
+      />
+    );
+  }
 
   const save = (format: DocumentFormat) => onSaveFormat(format);
 

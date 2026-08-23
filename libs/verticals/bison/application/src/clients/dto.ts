@@ -8,7 +8,9 @@ export type ClientDto = {
   readonly name: string;
   readonly initials: string;
   readonly phone: string;
-  readonly photoUrl?: string | undefined;
+  /** Storage path of the photo on file (never a URL) — readers resolve a
+   *  signed URL at the edge. */
+  readonly photoPath?: string | undefined;
   readonly channels: ClientChannels;
   readonly createdAt: string;
   readonly updatedAt: string;
@@ -19,7 +21,7 @@ export const toClientDto = (client: Client): ClientDto => ({
   name: client.name,
   initials: clientInitials(client.name),
   phone: client.phone,
-  photoUrl: client.photoUrl,
+  photoPath: client.photoPath,
   channels: client.channels,
   createdAt: client.createdAt,
   updatedAt: client.updatedAt,

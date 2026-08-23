@@ -7,9 +7,10 @@
  * ordinary string value (templates/values/file-value.ts): no storage, no
  * new value shape, and the printed page can embed the image later.
  */
-import { useRef } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { Download, FileText, Paperclip, X } from 'lucide-react';
-import { Button } from '@acme/ui';
+import { Button, toast } from '@acme/ui';
+import { useFileUrlResolver } from '../../../../templates/values/file-url-context';
 import {
   decodeFileValue,
   encodeFileValue,
@@ -32,22 +33,80 @@ const readInto = (file: File, onChange: (value: string) => void) => {
   reader.readAsDataURL(file);
 };
 
-const Thumb = ({ file }: { readonly file: FileValue }) =>
-  isImage(file) ? (
-    <img
-      src={file.dataUrl}
-      alt={file.name}
-      className="size-12 shrink-0 rounded-md border border-border object-cover"
-    />
-  ) : (
-    <div className="flex size-12 shrink-0 items-center justify-center rounded-md bg-muted text-muted-foreground">
-      <FileText className="size-5" />
-    </div>
+const ThumbImage = ({
+  src,
+  name,
+}: {
+  readonly src: string;
+  readonly name: string;
+}) => (
+  <img
+    src={src}
+    alt={name}
+    className="size-12 shrink-0 rounded-md border border-border object-cover"
+  />
+);
+
+const DocIcon = () => (
+  <div className="flex size-12 shrink-0 items-center justify-center rounded-md bg-muted text-muted-foreground">
+    <FileText className="size-5" />
+  </div>
+);
+
+/** A STORED image's thumbnail: resolve its path to a signed URL through
+ *  the wired seam; the icon stands in until (or unless) it resolves. */
+const StoredThumb = ({ file }: { readonly file: FileValue }) => {
+  const resolver = useFileUrlResolver();
+  const [src, setSrc] = useState<string | null>(null);
+  const path = file.storagePath;
+  useEffect(() => {
+    if (!resolver || !path) return;
+    let alive = true;
+    void resolver(path).then((url) => {
+      if (alive && url) setSrc(url);
+    });
+    return () => {
+      alive = false;
+    };
+  }, [resolver, path]);
+  return src ? <ThumbImage src={src} name={file.name} /> : <DocIcon />;
+};
+
+const Thumb = ({ file }: { readonly file: FileValue }) => {
+  if (!isImage(file)) return <DocIcon />;
+  if (file.dataUrl) return <ThumbImage src={file.dataUrl} name={file.name} />;
+  if (file.storagePath) return <StoredThumb file={file} />;
+  return <DocIcon />;
+};
+
+/** A stored value's download: resolve the path to a signed URL through the
+ *  wired seam and open it — the bytes come straight from the bucket. */
+const StoredDownload = ({ file }: { readonly file: FileValue }) => {
+  const resolver = useFileUrlResolver();
+  if (!resolver || !file.storagePath) return null;
+  const path = file.storagePath;
+  const open = async () => {
+    const url = await resolver(path);
+    if (url) window.open(url, '_blank', 'noopener');
+    else toast.error("The file couldn't be reached — try again.");
+  };
+  return (
+    <Button
+      type="button"
+      variant="ghost"
+      size="icon"
+      className="size-7 shrink-0 text-muted-foreground"
+      aria-label={`Download ${file.name}`}
+      onClick={() => void open()}
+    >
+      <Download className="size-4" />
+    </Button>
   );
+};
 
 /** Edit mode clears; read mode downloads — a captured file the user
- *  cannot get back out is a dead end. The anchor downloads straight from
- *  the data URL, so no storage round-trip is involved. */
+ *  cannot get back out is a dead end. Fresh picks download straight from
+ *  their data URL; stored values resolve a signed URL first. */
 const TrailingAction = ({
   file,
   onClear,
@@ -69,6 +128,7 @@ const TrailingAction = ({
       </Button>
     );
   if (!file) return null;
+  if (!file.dataUrl) return <StoredDownload file={file} />;
   // A plain styled anchor (not Button asChild): the browser handles the
   // data-URL download natively, no JS involved.
   return (

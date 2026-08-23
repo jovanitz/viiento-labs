@@ -2,10 +2,12 @@ import { createStore } from 'zustand/vanilla';
 import type {
   BisonClientFlowDeps,
   ClientDetailVM,
+  ClientRowVM,
   ClientsVM,
 } from '@acme/bison-application';
 import {
   createClient,
+  getFileUrl,
   loadClientDetail,
   loadClients,
   logTimelineEntry,
@@ -29,39 +31,76 @@ export type ClientsStoreState = {
   readonly create: (input: {
     readonly name: string;
     readonly phone?: string;
+    readonly photoDataUrl?: string;
   }) => Promise<boolean>;
   readonly saveContact: (input: {
     readonly id: string;
     readonly name: string;
     readonly phone: string;
+    readonly photoDataUrl?: string;
   }) => Promise<boolean>;
   readonly logEntry: (input: {
     readonly templateId: string;
     readonly values: Readonly<Record<string, string>>;
   }) => Promise<boolean>;
+  /** Signed URL for a stored file value, or null when unreachable. */
+  readonly fileUrl: (storagePath: string) => Promise<string | null>;
 };
 
 export type ClientsStore = ReturnType<typeof createClientsStore>;
 
+const fileUrlOn = async (
+  deps: BisonClientFlowDeps,
+  storagePath: string,
+): Promise<string | null> => {
+  const result = await getFileUrl(deps, { storagePath });
+  return result.ok ? result.value : null;
+};
+
+/** Photos persist as storage paths; the avatar needs a URL — resolve a
+ *  short-lived signed one per row (missing/unreachable → initials). */
+const withPhotoUrl = async (
+  deps: BisonClientFlowDeps,
+  row: ClientRowVM,
+): Promise<ClientRowVM> => {
+  if (!row.photoPath) return row;
+  const url = await fileUrlOn(deps, row.photoPath);
+  return url ? { ...row, photoUrl: url } : row;
+};
+
+type Patch = (partial: Partial<ClientsStoreState>) => void;
+
+const rosterReload = async (deps: BisonClientFlowDeps, set: Patch) => {
+  const result = await loadClients(deps);
+  if (!result.ok) {
+    set({ loading: false, error: result.error.message });
+    return;
+  }
+  const clients = await Promise.all(
+    result.value.clients.map((row) => withPhotoUrl(deps, row)),
+  );
+  set({ loading: false, error: null, roster: { ...result.value, clients } });
+};
+
+const detailReload = async (
+  deps: BisonClientFlowDeps,
+  set: Patch,
+  clientId: string,
+) => {
+  const result = await loadClientDetail(deps, { clientId });
+  if (!result.ok) {
+    set({ loading: false, error: result.error.message });
+    return false;
+  }
+  const client = await withPhotoUrl(deps, result.value.client);
+  set({ loading: false, error: null, detail: { ...result.value, client } });
+  return true;
+};
+
 export const createClientsStore = (deps: BisonClientFlowDeps) =>
   createStore<ClientsStoreState>((set, get) => {
-    const reloadRoster = async () => {
-      const result = await loadClients(deps);
-      set(
-        result.ok
-          ? { loading: false, error: null, roster: result.value }
-          : { loading: false, error: result.error.message },
-      );
-    };
-    const reloadDetail = async (clientId: string) => {
-      const result = await loadClientDetail(deps, { clientId });
-      set(
-        result.ok
-          ? { loading: false, error: null, detail: result.value }
-          : { loading: false, error: result.error.message },
-      );
-      return result.ok;
-    };
+    const reloadRoster = () => rosterReload(deps, set);
+    const reloadDetail = (clientId: string) => detailReload(deps, set, clientId);
 
     return {
       roster: null,
@@ -90,10 +129,14 @@ export const createClientsStore = (deps: BisonClientFlowDeps) =>
         await reloadRoster();
         return true;
       },
-      saveContact: async ({ id, name, phone }) => {
+      saveContact: async ({ id, name, phone, photoDataUrl }) => {
         const result = await updateClientContact(deps, {
           id,
-          changes: { name, phone },
+          changes: {
+            name,
+            phone,
+            ...(photoDataUrl !== undefined ? { photoDataUrl } : {}),
+          },
         });
         if (!result.ok) {
           set({ error: result.error.message });
@@ -101,6 +144,7 @@ export const createClientsStore = (deps: BisonClientFlowDeps) =>
         }
         return reloadDetail(id);
       },
+      fileUrl: (storagePath) => fileUrlOn(deps, storagePath),
       logEntry: async (input) => {
         const clientId = get().detail?.client.id;
         if (!clientId) return false;

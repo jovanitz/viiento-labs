@@ -119,7 +119,17 @@ const clientCases = (
     const saved = client();
     await store.clients.save(saved);
     const found = await store.clients.findById(saved.id);
-    expect(found).toEqual({ ...saved, photoUrl: undefined });
+    expect(found).toEqual({ ...saved, photoPath: undefined });
+  });
+
+  it('round-trips the photo storage path', async () => {
+    const store = await makeStore();
+    const saved = client();
+    await store.clients.save(saved);
+    const path = `clients/${saved.id}/photo-1`;
+    await store.clients.save({ ...saved, photoPath: path });
+    const found = await store.clients.findById(saved.id);
+    expect(found?.photoPath).toBe(path);
   });
 
   it('lists clients by name', async () => {

@@ -61,6 +61,9 @@ const updateClientContact = (deps: BisonProcedureDeps): ApiProcedure =>
           .object({
             name: nameSchema.optional(),
             phone: phoneSchema.optional(),
+            // A storage path under the client's own prefix ('' clears);
+            // the domain rejects paths outside clients/<id>/.
+            photoPath: z.string().max(300).optional(),
           })
           .strict(),
       })
@@ -72,6 +75,7 @@ const updateClientContact = (deps: BisonProcedureDeps): ApiProcedure =>
         changes: definedOnly({
           name: input.changes.name,
           phone: input.changes.phone,
+          photoPath: input.changes.photoPath,
         }) as ClientContactChanges,
       }),
   });

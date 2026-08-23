@@ -16,6 +16,28 @@ import { WiredClientDetail } from './clients.wired.detail';
  * cross-section jumps work). Without those props — stories, the bare
  * prototype — the store's own open/back keep the old self-contained flow.
  */
+/** Only a freshly picked photo (a data URL from the picker) travels to
+ *  Save — an unchanged prefill is the already-resolved signed URL. */
+const pickedPhotoOf = (photoUrl: string): string | undefined =>
+  photoUrl.startsWith('data:') ? photoUrl : undefined;
+
+const createFromDraft = async (
+  store: ReturnType<typeof useClientsStore>,
+  draft: {
+    readonly name: string;
+    readonly phone: string;
+    readonly photoUrl: string;
+  },
+) => {
+  const photoDataUrl = pickedPhotoOf(draft.photoUrl);
+  const created = await store.getState().create({
+    name: draft.name,
+    phone: draft.phone,
+    ...(photoDataUrl !== undefined ? { photoDataUrl } : {}),
+  });
+  if (created) toast.success(`${draft.name} added to clients`);
+};
+
 const RosterFallback = ({
   error,
   onRetry,
@@ -70,15 +92,22 @@ export const ClientsContainer = ({
         detail={detail}
         onBack={onBack ?? (() => store.getState().back())}
         onSaveContact={async (draft) => {
+          // The dev adapter resolves photos AS data URLs, so an unchanged
+          // prefill can look like a fresh pick — same-as-current is not one.
+          const picked = pickedPhotoOf(draft.photoUrl);
+          const photoDataUrl =
+            picked !== detail.client.photoUrl ? picked : undefined;
           const saved = await store.getState().saveContact({
             id: detail.client.id,
             name: draft.name,
             phone: draft.phone,
+            ...(photoDataUrl !== undefined ? { photoDataUrl } : {}),
           });
           if (saved) toast.success('Contact info updated');
           return saved;
         }}
         onLogEntry={(input) => store.getState().logEntry(input)}
+        onResolveFileUrl={(path) => store.getState().fileUrl(path)}
       />
     );
   }
@@ -98,14 +127,7 @@ export const ClientsContainer = ({
       onSelectClient={(id) =>
         onOpenClient ? onOpenClient(id) : void store.getState().open(id)
       }
-      onCreateClient={(draft) =>
-        void store
-          .getState()
-          .create({ name: draft.name, phone: draft.phone })
-          .then((created) => {
-            if (created) toast.success(`${draft.name} added to clients`);
-          })
-      }
+      onCreateClient={(draft) => void createFromDraft(store, draft)}
     />
   );
 };

@@ -14,4 +14,19 @@ describe('createInMemoryFileStorage', () => {
     });
     expect(storage.objects.get('clients/c1/f1')?.mime).toBe('image/png');
   });
+
+  it('signs a URL that actually serves the object (data URL)', async () => {
+    const storage = createInMemoryFileStorage();
+    await storage.put({
+      path: 'clients/c1/f1',
+      bytes: new Uint8Array([7, 8]),
+      mime: 'image/png',
+    });
+    const signed = await storage.getSignedUrl({
+      path: 'clients/c1/f1',
+      expiresInSeconds: 60,
+    });
+    expect(signed.ok).toBe(true);
+    if (signed.ok) expect(signed.value).toBe('data:image/png;base64,Bwg=');
+  });
 });

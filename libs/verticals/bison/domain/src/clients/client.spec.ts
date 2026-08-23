@@ -76,6 +76,40 @@ describe('updateClientContact', () => {
     expect(result.value.phone).toBe('55 0000 0000');
     expect(result.value.updatedAt).toBe(later);
   });
+
+  it('accepts a photo path under the client own prefix and clears on empty', () => {
+    const created = createClient({
+      id: id('cli-1'),
+      name: 'Diana',
+      occurredAt: NOW,
+    });
+    if (!created.ok) throw new Error('fixture client must be valid');
+    const set = updateClientContact(
+      created.value,
+      { photoPath: 'clients/cli-1/foto-1' },
+      NOW,
+    );
+    expect(set.ok).toBe(true);
+    if (!set.ok) return;
+    expect(set.value.photoPath).toBe('clients/cli-1/foto-1');
+    const cleared = updateClientContact(set.value, { photoPath: '' }, NOW);
+    expect(cleared.ok && cleared.value.photoPath === undefined).toBe(true);
+  });
+
+  it("rejects a photo path outside the client's prefix", () => {
+    const created = createClient({
+      id: id('cli-1'),
+      name: 'Diana',
+      occurredAt: NOW,
+    });
+    if (!created.ok) throw new Error('fixture client must be valid');
+    const result = updateClientContact(
+      created.value,
+      { photoPath: 'clients/cli-2/foto-ajena' },
+      NOW,
+    );
+    expect(!result.ok && result.error.tag).toBe('domain/invalid-client-photo');
+  });
 });
 
 describe('clientInitials', () => {
