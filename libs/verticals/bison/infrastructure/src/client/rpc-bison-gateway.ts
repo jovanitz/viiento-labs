@@ -7,6 +7,16 @@ import type {
   BisonGatewayError,
 } from '@acme/bison-application';
 
+/** Bytes → base64, chunked so large PDFs don't blow the arg limit. */
+const base64Of = (bytes: Uint8Array): string => {
+  let binary = '';
+  const CHUNK = 0x8000;
+  for (let i = 0; i < bytes.length; i += CHUNK) {
+    binary += String.fromCharCode(...bytes.subarray(i, i + CHUNK));
+  }
+  return btoa(binary);
+};
+
 /**
  * Client-side adapter for `BisonClientGateway`: calls the API's `bison.*`
  * procedures through the `ApiClient` port (which attaches the bearer token
@@ -127,6 +137,24 @@ export const createRpcBisonGateway = (deps: {
     formats: {
       list: () => call('bison.formats.list'),
       save: (input) => call('bison.formats.save', input),
+    },
+    documents: {
+      issue: (input) => call('bison.documents.issue', input),
+      attachPdf: ({ issueId, bytes }) =>
+        call('bison.documents.attachPdf', {
+          issueId,
+          bytesBase64: base64Of(bytes),
+        }),
+      issues: (input) => call('bison.documents.issues', input),
+      voidIssue: ({ issueId, supersededBy }) =>
+        call('bison.documents.void', {
+          issueId,
+          ...(supersededBy !== undefined ? { supersededBy } : {}),
+        }),
+    },
+    identity: {
+      get: () => call('bison.identity.get'),
+      update: (input) => call('bison.identity.update', input),
     },
   };
 };

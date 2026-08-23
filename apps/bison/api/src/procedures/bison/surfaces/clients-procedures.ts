@@ -1,10 +1,10 @@
 import { z } from 'zod';
 import { ok } from '@acme/shared';
 import type { ClientContactChanges } from '@acme/bison-domain';
-import { defineApiProcedure } from '../../rpc/procedure';
-import type { ApiProcedure } from '../../rpc/procedure';
-import { bisonUseCasesOf, definedOnly, deniedIfBlocked } from './context';
-import type { BisonProcedureDeps } from './context';
+import { defineApiProcedure } from '../../../rpc/procedure';
+import type { ApiProcedure } from '../../../rpc/procedure';
+import { bisonUseCasesOf, definedOnly, deniedIfBlocked } from '../context';
+import type { BisonProcedureDeps } from '../context';
 
 const nameSchema = z.string().min(1).max(120);
 const phoneSchema = z.string().max(40);

@@ -11,3 +11,5 @@ export * from './agenda/appointment';
 export * from './agenda/calendar-block';
 export * from './documents/errors';
 export * from './documents/format';
+export * from './documents/issued-document';
+export * from './identity/business-identity';

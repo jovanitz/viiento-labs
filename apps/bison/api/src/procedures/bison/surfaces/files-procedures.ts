@@ -1,8 +1,8 @@
 import { z } from 'zod';
-import { defineApiProcedure } from '../../rpc/procedure';
-import type { ApiProcedure } from '../../rpc/procedure';
-import { bisonUseCasesOf, deniedIfBlocked } from './context';
-import type { BisonProcedureDeps } from './context';
+import { defineApiProcedure } from '../../../rpc/procedure';
+import type { ApiProcedure } from '../../../rpc/procedure';
+import { bisonUseCasesOf, deniedIfBlocked } from '../context';
+import type { BisonProcedureDeps } from '../context';
 
 /** ~5 MB of raw bytes once base64 is decoded — enough for phone photos and
  *  PDFs through JSON-RPC; bigger files should wait for the direct-to-storage

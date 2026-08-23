@@ -1,8 +1,8 @@
 import { z } from 'zod';
-import { defineApiProcedure } from '../../rpc/procedure';
-import type { ApiProcedure } from '../../rpc/procedure';
-import { bisonUseCasesOf, deniedIfBlocked } from './context';
-import type { BisonProcedureDeps } from './context';
+import { defineApiProcedure } from '../../../rpc/procedure';
+import type { ApiProcedure } from '../../../rpc/procedure';
+import { bisonUseCasesOf, deniedIfBlocked } from '../context';
+import type { BisonProcedureDeps } from '../context';
 
 const listTimeline = (deps: BisonProcedureDeps): ApiProcedure =>
   defineApiProcedure({

@@ -6,6 +6,9 @@ import type {
   EntryRepository,
   TemplateRepository,
   VisitSummary,
+  BusinessIdentityRepository,
+  FolioSource,
+  IssuedDocumentRepository,
 } from '@acme/bison-application';
 import type {
   Appointment,
@@ -14,6 +17,8 @@ import type {
   DocumentFormat,
   Entry,
   Template,
+  BusinessIdentity,
+  IssuedDocument,
 } from '@acme/bison-domain';
 
 /**
@@ -28,6 +33,33 @@ export type BisonAccountStore = {
   readonly appointments: AppointmentRepository;
   readonly calendarBlocks: CalendarBlockRepository;
   readonly formats: DocumentFormatRepository;
+  readonly identity: BusinessIdentityRepository;
+  readonly issued: IssuedDocumentRepository;
+  readonly folios: FolioSource;
+};
+
+/** In-memory issuance: issues by id plus the account's folio counter. */
+const inMemoryIssuance = (): {
+  readonly issued: IssuedDocumentRepository;
+  readonly folios: FolioSource;
+} => {
+  const issued = new Map<string, IssuedDocument>();
+  let folioNext = 1;
+  return {
+    issued: {
+      findById: async (id) => issued.get(id) ?? null,
+      listByEntry: async (entryId) =>
+        [...issued.values()]
+          .filter((issue) => issue.entryId === entryId)
+          .sort((a, b) => b.folio - a.folio),
+      save: async (issue: IssuedDocument) => {
+        issued.set(issue.id, issue);
+      },
+    },
+    folios: {
+      next: async () => folioNext++,
+    },
+  };
 };
 
 /** Confirmed visits grouped per client, latest first within each group. */
@@ -93,6 +125,7 @@ export const createInMemoryBisonStore = (): BisonAccountStore => {
   const appointments = new Map<string, Appointment>();
   const calendarBlocks = new Map<string, CalendarBlock>();
   const formats = new Map<string, DocumentFormat>();
+  let identity: BusinessIdentity | null = null;
 
   return {
     formats: {
@@ -102,6 +135,13 @@ export const createInMemoryBisonStore = (): BisonAccountStore => {
         formats.set(format.id, format);
       },
     },
+    identity: {
+      get: async () => identity,
+      save: async (next: BusinessIdentity) => {
+        identity = next;
+      },
+    },
+    ...inMemoryIssuance(),
     calendarBlocks: {
       list: async () => [...calendarBlocks.values()],
       save: async (block) => {
@@ -141,6 +181,7 @@ export const createInMemoryBisonStore = (): BisonAccountStore => {
       append: async (entry) => {
         entries.push(entry);
       },
+      findById: async (id) => entries.find((entry) => entry.id === id) ?? null,
       listByClient: async (clientId) =>
         entries
           .filter((entry) => entry.clientId === clientId)

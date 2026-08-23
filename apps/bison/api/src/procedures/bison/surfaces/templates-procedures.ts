@@ -14,10 +14,10 @@ import type {
 } from '@acme/bison-domain';
 import type { TemplateChanges } from '@acme/bison-domain';
 import type { TemplateBlockInput } from '@acme/bison-application';
-import { defineApiProcedure } from '../../rpc/procedure';
-import type { ApiProcedure } from '../../rpc/procedure';
-import { bisonUseCasesOf, definedOnly, deniedIfBlocked } from './context';
-import type { BisonProcedureDeps } from './context';
+import { defineApiProcedure } from '../../../rpc/procedure';
+import type { ApiProcedure } from '../../../rpc/procedure';
+import { bisonUseCasesOf, definedOnly, deniedIfBlocked } from '../context';
+import type { BisonProcedureDeps } from '../context';
 
 const iconSchema = z.enum(TEMPLATE_ICONS as [TemplateIcon, ...TemplateIcon[]]);
 const colorSchema = z.enum(

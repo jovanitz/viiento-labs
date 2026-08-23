@@ -36,6 +36,7 @@ const inMemoryEntries = (): EntryRepository => {
     append: async (entry) => {
       store.push(entry);
     },
+    findById: async (id) => store.find((entry) => entry.id === id) ?? null,
     listByClient: async (clientId) =>
       store
         .filter((entry) => entry.clientId === clientId)

@@ -14,6 +14,13 @@ import type { Client } from '@acme/bison-domain';
 import type { ClientRepository } from '../clients/ports';
 import { makeFileUseCases } from './use-cases';
 
+/** Issued-doc repo fake: these specs never sign issued/ paths. */
+const fakeIssued = {
+  findById: async () => null,
+  listByEntry: async () => [],
+  save: async () => undefined,
+};
+
 const inMemoryClients = (): ClientRepository => {
   const store = new Map<string, Client>();
   return {
@@ -58,6 +65,7 @@ const harness = async () => {
   const files = makeFileUseCases({
     files: storage,
     clients,
+    issued: fakeIssued,
     ids: sequentialIdGenerator('file'),
   });
   return { files, objects, clientId: created.value.id };
@@ -164,6 +172,7 @@ describe('file use cases', () => {
         remove: async () => err(fileStorageFailed('bucket unreachable')),
       },
       clients,
+      issued: fakeIssued,
       ids: sequentialIdGenerator('file'),
     });
     const result = await failing.attach({

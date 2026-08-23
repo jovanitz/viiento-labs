@@ -1,10 +1,10 @@
 import { z } from 'zod';
 import { ok } from '@acme/shared';
 import type { AppointmentMove } from '@acme/bison-domain';
-import { defineApiProcedure } from '../../rpc/procedure';
-import type { ApiProcedure } from '../../rpc/procedure';
-import { bisonUseCasesOf, definedOnly, deniedIfBlocked } from './context';
-import type { BisonProcedureDeps } from './context';
+import { defineApiProcedure } from '../../../rpc/procedure';
+import type { ApiProcedure } from '../../../rpc/procedure';
+import { bisonUseCasesOf, definedOnly, deniedIfBlocked } from '../context';
+import type { BisonProcedureDeps } from '../context';
 
 const dateSchema = z.string().regex(/^\d{4}-\d{2}-\d{2}$/);
 const startMinSchema = z.number().int().min(0).max(1439);

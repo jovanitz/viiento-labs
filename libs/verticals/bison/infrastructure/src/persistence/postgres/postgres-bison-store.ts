@@ -9,6 +9,8 @@ import type { BisonAccountStore } from '../in-memory-bison-store';
 import { appointmentsRepo } from './appointments';
 import { calendarBlocksRepo } from './calendar-blocks';
 import { formatsRepo } from './formats';
+import { identityRepo } from './identity';
+import { foliosSource, issuedRepo } from './issued';
 import { clientFromRow, entryFromRow, isUuid, templateFromRow } from './rows';
 
 /**
@@ -120,6 +122,14 @@ const entriesRepo = (sql: Sql, accountId: string): EntryRepository => ({
          ${entry.summary}, ${JSON.stringify(entry.fields)}::jsonb)
     `;
   },
+  findById: async (id) => {
+    if (!isUuid(id)) return null;
+    const rows = await sql`
+      select * from public.bison_timeline_entries
+      where id = ${id} and account_id = ${accountId} limit 1
+    `;
+    return rows[0] ? entryFromRow(rows[0]) : null;
+  },
   listByClient: async (clientId) => {
     if (!isUuid(clientId)) return [];
     const rows = await sql`
@@ -147,6 +157,9 @@ export const createPostgresBisonStore = (config: {
       appointments: appointmentsRepo(sql, accountId),
       calendarBlocks: calendarBlocksRepo(sql, accountId),
       formats: formatsRepo(sql, accountId),
+      identity: identityRepo(sql, accountId),
+      issued: issuedRepo(sql, accountId),
+      folios: foliosSource(sql, accountId),
     }),
     close: () => sql.end(),
   };

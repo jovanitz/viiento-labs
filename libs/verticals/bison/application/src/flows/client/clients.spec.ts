@@ -105,6 +105,24 @@ const fakeGateway = () => {
         return ok(entry);
       },
     },
+    documents: {
+      issue: async () => err(bisonGatewayError('not exercised here')),
+      attachPdf: async () => err(bisonGatewayError('not exercised here')),
+      issues: async () => ok([]),
+      voidIssue: async () => err(bisonGatewayError('not exercised here')),
+    },
+    identity: {
+      get: async () =>
+        ok({
+          name: '',
+          address: '',
+          phone: '',
+          license: '',
+          logoPath: '',
+          updatedAt: '',
+        }),
+      update: async () => err(bisonGatewayError('not exercised here')),
+    },
     files: {
       attach: async ({ clientId, name, mime, bytesBase64 }) =>
         ok(

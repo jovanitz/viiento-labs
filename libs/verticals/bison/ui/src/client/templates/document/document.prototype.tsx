@@ -26,7 +26,7 @@ import { BackButton } from '../../back-button';
 import { DocumentPreviewView } from './document.view';
 import { documentPreview } from './document.compose';
 import type { EntryValues } from './document.compose';
-import type { DocumentVM } from './document.types';
+
 import { EMPTY_ACCOUNT } from './document.tokens';
 import type { TokenValues } from './document.tokens';
 import type { DocumentFormat } from './document.format';
@@ -73,13 +73,13 @@ export const EntryDocument = ({
   readonly account?: TokenValues;
   readonly onBack: () => void;
   /**
-   * The real emitter (wired apps): turn the paginated tree into a PDF the
-   * user keeps. Absent — stories, the bare prototype — Issue stays a
-   * demo toast. `fileName` is presentation's suggestion; the handler owns
-   * the bytes.
+   * The real emitter (wired apps): formal issuance — folio, frozen
+   * snapshot, rendered bytes the user keeps. Returns the folio label, or
+   * null on failure. Absent — stories, the bare prototype — Issue stays
+   * a demo toast.
    */
   readonly onIssuePdf?:
-    | ((doc: DocumentVM, fileName: string) => Promise<boolean>)
+    | ((format: DocumentFormat, fileName: string) => Promise<string | null>)
     | undefined;
 }) => {
   const [formatId, setFormatId] = useState(formats[0]?.id ?? '');
@@ -103,10 +103,10 @@ export const EntryDocument = ({
       return;
     }
     setBusy(true);
-    const done = await onIssuePdf(vm.document, `${template.name} — ${clientName}.pdf`);
+    const folio = await onIssuePdf(format, `${template.name} — ${clientName}.pdf`);
     setBusy(false);
-    if (done) toast.success('Document downloaded');
-    else toast.error("The PDF couldn't be generated — try again.");
+    if (folio !== null) toast.success(`Issued · folio ${folio} — downloaded`);
+    else toast.error("The document couldn't be issued — try again.");
   };
   return (
     <Stack gap="group">

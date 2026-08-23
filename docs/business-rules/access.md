@@ -165,6 +165,12 @@ generated — they are behavior, not documentation:
 | `bison.agenda.blocks.remove` | — (any authenticated actor) | Delete a block — a recurring one goes with its whole series. Idempotent. |
 | `bison.formats.list` | — (any authenticated actor) | The account's document formats (ADR-0021 wrappers). Shipped starting points live in the app; rows here are the business’s own, with shippedKey provenance when they override one. |
 | `bison.formats.save` | — (any authenticated actor) | Persist a format: update when existingId names a backend row, create otherwise (editing a shipped starting point creates a copy-on-write row carrying its shippedKey). |
+| `bison.identity.get` | — (any authenticated actor) | The business's identity on file (name, address, phone, license, logo). Empty fields mean the business has not filled them yet. |
+| `bison.identity.update` | — (any authenticated actor) | Update the business's identity. Partial: absent fields keep their value, '' clears. The logo travels as a storage path, never bytes. |
+| `bison.documents.issue` | — (any authenticated actor) | Allocate the next folio and freeze the snapshot for one timeline entry × format. Returns the resolved tokens the renderer composes with. |
+| `bison.documents.attachPdf` | — (any authenticated actor) | Land an issue's rendered PDF bytes in storage, exactly once. |
+| `bison.documents.void` | — (any authenticated actor) | Void an issue (optionally superseded by its replacement). Issues are never edited or deleted — the folio stays on record. |
+| `bison.documents.issues` | — (any authenticated actor) | One entry's issues, newest folio first. |
 | `access.current` | — (any authenticated actor) | The caller's current access snapshot: permissions, active grants, session. |
 | `audit.list` | `audit.read` | Read the append-only security audit trail. |
 | `account.disable` | `account.disable` | Disable an account; every session on it is denied from the next request. |

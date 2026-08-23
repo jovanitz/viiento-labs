@@ -14,8 +14,8 @@ import type { EntryTemplate } from '../../templates/templates.types';
 import { EntryDocument } from '../../templates/document/document.prototype';
 import { mergeFormats } from '../../templates/wired/formats.bridge';
 import { FileUrlResolverProvider } from '../../templates/values/file-url-context';
-import { useFormatsStore, useStore } from '../../store/hooks';
-import { useIssuePdf } from './clients.wired.issue';
+import { useFormatsStore, useIdentityStore, useStore } from '../../store/hooks';
+import { useIssueEntry } from './clients.wired.issue';
 
 /**
  * The WIRED client detail: renders the same approved views as the
@@ -99,7 +99,7 @@ const documentTarget = (
   const values = Object.fromEntries(
     entry.fields.map((field) => [field.blockId, field.value]),
   );
-  return { template, values };
+  return { entryId: entry.id, template, values };
 };
 
 type LogEntryInput = {
@@ -172,16 +172,19 @@ export const WiredClientDetail = ({
 }) => {
   const templates = detail.templates as readonly EntryTemplate[];
   const timeline = useDraftTimeline(onLogEntry);
-  const onIssuePdf = useIssuePdf();
   const [documentEntryId, setDocumentEntryId] = useState<string>();
   const formatsStore = useFormatsStore();
   const storedFormats = useStore(formatsStore, (s) => s.formats);
+  const identityStore = useIdentityStore();
+  const accountTokens = useStore(identityStore, (s) => s.tokens);
   useEffect(() => {
     void formatsStore.getState().load();
-  }, [formatsStore]);
+    void identityStore.getState().load();
+  }, [formatsStore, identityStore]);
   const formats = mergeFormats(storedFormats ?? []);
 
   const target = documentTarget(detail, templates, documentEntryId);
+  const onIssuePdf = useIssueEntry(target, storedFormats);
   if (target)
     return (
       <FileUrlResolverProvider resolver={onResolveFileUrl}>
@@ -189,6 +192,7 @@ export const WiredClientDetail = ({
           template={target.template}
           formats={formats}
           values={target.values}
+          account={accountTokens ?? {}}
           clientName={detail.client.name}
           onBack={() => setDocumentEntryId(undefined)}
           onIssuePdf={onIssuePdf}

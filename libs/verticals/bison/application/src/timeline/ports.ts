@@ -8,5 +8,6 @@ import type { ClientId, Entry } from '@acme/bison-domain';
  */
 export type EntryRepository = {
   readonly append: (entry: Entry) => Promise<void>;
+  readonly findById: (id: string) => Promise<Entry | null>;
   readonly listByClient: (clientId: ClientId) => Promise<ReadonlyArray<Entry>>;
 };

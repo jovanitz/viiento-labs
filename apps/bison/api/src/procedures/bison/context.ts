@@ -11,6 +11,8 @@ import {
   makeAgendaUseCases,
   makeCalendarBlockUseCases,
   makeFormatUseCases,
+  makeIdentityUseCases,
+  makeIssuanceUseCases,
   makeClientUseCases,
   makeFileUseCases,
   makeTemplateUseCases,
@@ -20,6 +22,8 @@ import type {
   AgendaUseCases,
   CalendarBlockUseCases,
   FormatUseCases,
+  IdentityUseCases,
+  IssuanceUseCases,
   ClientUseCases,
   FileUseCases,
   TemplateUseCases,
@@ -48,6 +52,8 @@ export type BisonUseCases = {
   readonly agenda: AgendaUseCases;
   readonly calendarBlocks: CalendarBlockUseCases;
   readonly formats: FormatUseCases;
+  readonly identity: IdentityUseCases;
+  readonly issuance: IssuanceUseCases;
 };
 
 export const bisonUseCasesOf = (
@@ -68,6 +74,7 @@ export const bisonUseCasesOf = (
     files: makeFileUseCases({
       files,
       clients: world.clients,
+      issued: world.issued,
       ids: deps.ids,
     }),
     agenda: makeAgendaUseCases({
@@ -80,6 +87,22 @@ export const bisonUseCasesOf = (
       ...shared,
     }),
     formats: makeFormatUseCases({ formats: world.formats, ...shared }),
+    identity: makeIdentityUseCases({
+      identity: world.identity,
+      clock: deps.clock,
+    }),
+    issuance: makeIssuanceUseCases({
+      issued: world.issued,
+      folios: world.folios,
+      entries: world.entries,
+      templates: world.templates,
+      formats: world.formats,
+      clients: world.clients,
+      identity: world.identity,
+      files,
+      clock: deps.clock,
+      ids: deps.ids,
+    }),
   };
 };
 

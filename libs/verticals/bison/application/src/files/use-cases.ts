@@ -1,17 +1,21 @@
 import { type IdGenerator, type Result, err, ok } from '@acme/shared';
 import type { FileStorage } from '@acme/application';
 import { encodeFileRef, makeClientId } from '@acme/bison-domain';
+import type { IssuedDocumentId } from '@acme/bison-domain';
 import { clientNotFound } from '../clients/errors';
 import type { ClientRepository } from '../clients/ports';
+import type { IssuedDocumentRepository } from '../documents/ports';
 import { type FileUseCaseError, filePathInvalid } from './errors';
 
 export type FileUseCaseDeps = {
   readonly files: FileStorage;
   readonly clients: ClientRepository;
+  readonly issued: IssuedDocumentRepository;
   readonly ids: IdGenerator;
 };
 
 const PATH_RE = /^clients\/([^/]+)\/[^/]+$/;
+const ISSUED_PATH_RE = /^issued\/([^/]+)$/;
 const DEFAULT_URL_TTL_SECONDS = 300;
 
 /**
@@ -66,6 +70,23 @@ export const makeGetFileUrl =
     readonly storagePath: string;
     readonly expiresInSeconds?: number;
   }): Promise<Result<string, FileUseCaseError>> => {
+    // Issued-document bytes: the path is owned by the issue row, which
+    // only exists inside this account's world.
+    const issuedMatch = ISSUED_PATH_RE.exec(input.storagePath);
+    if (issuedMatch) {
+      const issue = await deps.issued.findById(
+        issuedMatch[1] as IssuedDocumentId,
+      );
+      if (!issue || issue.pdfPath !== input.storagePath) {
+        return err(
+          filePathInvalid(`Not a stored file path: ${input.storagePath}.`),
+        );
+      }
+      return deps.files.getSignedUrl({
+        path: input.storagePath,
+        expiresInSeconds: input.expiresInSeconds ?? DEFAULT_URL_TTL_SECONDS,
+      });
+    }
     const match = PATH_RE.exec(input.storagePath);
     const rawClientId = match?.[1];
     if (!rawClientId) {

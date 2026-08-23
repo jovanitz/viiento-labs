@@ -7,6 +7,7 @@ import {
   TEMPLATE_ICONS,
 } from '@acme/bison-domain';
 import type {
+  BusinessIdentityChanges,
   FieldKind,
   FieldWidth,
   TemplateColor,
@@ -28,6 +29,7 @@ import {
 } from './templates';
 import type { SaveTemplateInput } from './templates';
 import type { SaveFormatInput } from '../../documents/use-cases';
+import { loadIdentity, saveIdentity } from './account/identity';
 import { AGENDA_FLOWS } from './agenda/registry-agenda';
 
 /**
@@ -169,6 +171,33 @@ export const BISON_CLIENT_FLOWS: ReadonlyArray<
       marks: z.array(z.record(z.unknown())).max(4),
     }),
     run: (deps, input) => saveFormat(deps, input as SaveFormatInput),
+  },
+  {
+    name: 'bison.identity.get',
+    kind: 'query',
+    description:
+      "The business's identity on file — empty fields mean the business " +
+      'has not filled them yet; the app never invents a letterhead.',
+    input: z.object({}),
+    run: (deps) => loadIdentity(deps),
+  },
+  {
+    name: 'bison.identity.update',
+    kind: 'command',
+    description:
+      "Update the business's identity (name, address, phone, license, " +
+      "logo path). Partial: absent fields keep their value, '' clears.",
+    input: z.object({
+      changes: z.object({
+        name: z.string().max(120).optional(),
+        address: z.string().max(240).optional(),
+        phone: z.string().max(40).optional(),
+        license: z.string().max(120).optional(),
+        logoPath: z.string().max(300).optional(),
+      }),
+    }),
+    run: (deps, input) =>
+      saveIdentity(deps, input as { changes: BusinessIdentityChanges }),
   },
   ...AGENDA_FLOWS,
 ];

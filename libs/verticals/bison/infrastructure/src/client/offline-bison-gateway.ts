@@ -104,5 +104,9 @@ export const withOfflineCache = (
       ...gateway.formats,
       list: wrapVoid(() => gateway.formats.list(), 'formats.list'),
     },
+    identity: {
+      ...gateway.identity,
+      get: wrapVoid(() => gateway.identity.get(), 'identity.get'),
+    },
   };
 };

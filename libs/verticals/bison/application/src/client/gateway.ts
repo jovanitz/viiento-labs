@@ -7,6 +7,8 @@ import type {
   TemplateChanges,
   TemplateColor,
   TemplateIcon,
+  BusinessIdentity,
+  BusinessIdentityChanges,
 } from '@acme/bison-domain';
 import type { AppointmentDto, VisitSummaryDto } from '../agenda/dto';
 import type { CalendarBlockDto } from '../agenda/blocks-use-cases';
@@ -14,6 +16,7 @@ import type {
   DocumentFormatDto,
   SaveFormatInput,
 } from '../documents/use-cases';
+import type { IssueDto } from '../documents/issuance-dto';
 import type { ClientDto } from '../clients/dto';
 import type { TemplateBlockInput } from '../templates/use-cases';
 import type { TemplateDto } from '../templates/dto';
@@ -119,5 +122,28 @@ export type BisonClientGateway = {
   readonly formats: {
     readonly list: () => Reply<ReadonlyArray<DocumentFormatDto>>;
     readonly save: (input: SaveFormatInput) => Reply<DocumentFormatDto>;
+  };
+  readonly documents: {
+    readonly issue: (input: {
+      readonly entryId: string;
+      readonly formatId: string;
+    }) => Reply<IssueDto>;
+    readonly attachPdf: (input: {
+      readonly issueId: string;
+      readonly bytes: Uint8Array;
+    }) => Reply<IssueDto>;
+    readonly issues: (input: {
+      readonly entryId: string;
+    }) => Reply<ReadonlyArray<IssueDto>>;
+    readonly voidIssue: (input: {
+      readonly issueId: string;
+      readonly supersededBy?: string;
+    }) => Reply<IssueDto>;
+  };
+  readonly identity: {
+    readonly get: () => Reply<BusinessIdentity>;
+    readonly update: (input: {
+      readonly changes: BusinessIdentityChanges;
+    }) => Reply<BusinessIdentity>;
   };
 };

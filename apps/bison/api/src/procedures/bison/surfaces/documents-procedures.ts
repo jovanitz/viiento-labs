@@ -1,15 +1,17 @@
 import { z } from 'zod';
 import { ok } from '@acme/shared';
 import type { SaveFormatInput } from '@acme/bison-application';
-import { defineApiProcedure } from '../../rpc/procedure';
-import type { ApiProcedure } from '../../rpc/procedure';
-import { bisonUseCasesOf, definedOnly, deniedIfBlocked } from './context';
-import type { BisonProcedureDeps } from './context';
+import type { BusinessIdentityChanges } from '@acme/bison-domain';
+import { defineApiProcedure } from '../../../rpc/procedure';
+import type { ApiProcedure } from '../../../rpc/procedure';
+import { bisonUseCasesOf, definedOnly, deniedIfBlocked } from '../context';
+import type { BisonProcedureDeps } from '../context';
 
 const tokenSchema = z.enum([
   'business.name',
   'business.address',
   'business.phone',
+  'business.license',
   'client.name',
   'document.folio',
   'document.issuedAt',
@@ -67,6 +69,61 @@ const saveFormat = (deps: BisonProcedureDeps): ApiProcedure =>
   });
 
 /** Document formats — same tenancy-is-authorization stance. */
+
+/**
+ * The account's own identity — what a document's `business.*` tokens
+ * resolve to (ADR-0020 §4). Same tenancy stance as everything bison:
+ * `forAccount` scoping IS the authorization, `action: null`.
+ */
+const getIdentity = (deps: BisonProcedureDeps): ApiProcedure =>
+  defineApiProcedure({
+    name: 'bison.identity.get',
+    summary:
+      "The business's identity on file (name, address, phone, license, " +
+      'logo). Empty fields mean the business has not filled them yet.',
+    action: null,
+    input: z.object({}).strict(),
+    handler: async ({ actor }) =>
+      deniedIfBlocked(actor) ??
+      ok(await bisonUseCasesOf(deps, actor).identity.get()),
+  });
+
+const updateIdentity = (deps: BisonProcedureDeps): ApiProcedure =>
+  defineApiProcedure({
+    name: 'bison.identity.update',
+    summary:
+      "Update the business's identity. Partial: absent fields keep their " +
+      "value, '' clears. The logo travels as a storage path, never bytes.",
+    action: null,
+    input: z
+      .object({
+        changes: z
+          .object({
+            name: z.string().max(120).optional(),
+            address: z.string().max(240).optional(),
+            phone: z.string().max(40).optional(),
+            license: z.string().max(120).optional(),
+            logoPath: z.string().max(300).optional(),
+          })
+          .strict(),
+      })
+      .strict(),
+    handler: async ({ actor, input }) =>
+      deniedIfBlocked(actor) ??
+      bisonUseCasesOf(deps, actor).identity.update({
+        changes: definedOnly({
+          name: input.changes.name,
+          address: input.changes.address,
+          phone: input.changes.phone,
+          license: input.changes.license,
+          logoPath: input.changes.logoPath,
+        }) as BusinessIdentityChanges,
+      }),
+  });
+
 export const createBisonDocumentProcedures = (
   deps: BisonProcedureDeps,
-): ReadonlyArray<ApiProcedure> => [listFormats(deps), saveFormat(deps)];
+): ReadonlyArray<ApiProcedure> => [listFormats(deps), saveFormat(deps),
+  getIdentity(deps),
+  updateIdentity(deps),
+];
