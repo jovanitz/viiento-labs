@@ -9,7 +9,12 @@ import {
   makeOrgDetailReader,
   toBillingStoreState,
 } from '@acme/infrastructure';
-import { createPostgresAccessStore } from '@acme/infrastructure-node';
+import {
+  createPostgresAccessStore,
+  createPostgresPlanCatalogStore,
+  createPostgresSubscriptionStore,
+} from '@acme/infrastructure-node';
+import postgres from 'postgres';
 import { createApi } from './app';
 import { createApiProcedures } from './procedures';
 import { createBisonProcedures } from './procedures/bison';
@@ -94,10 +99,24 @@ export const createApiRuntime = (config: ApiConfig): ApiRuntime => {
   });
   // The enforcement vertical (ADR-0016 Decision 4): the pre-actor ownership
   // guard + trial-once probe + default plan feed org creation.
+  // Org birth against Postgres reads the REAL plan catalog and trial
+  // history — the in-memory catalog regenerates plan ids per boot, and the
+  // onboarding adapter persists the subscription with an FK to plans.
+  const billingSql = config.databaseUrl
+    ? postgres(config.databaseUrl, { max: 2, onnotice: () => undefined })
+    : null;
+  const orgBilling = billingSql
+    ? {
+        guardOrgCreation: billing.guards.guardOrgCreation,
+        hasTrialConsumedByUser:
+          createPostgresSubscriptionStore(billingSql).hasTrialConsumedByUser,
+        defaultPlan: createPostgresPlanCatalogStore(billingSql).findDefaultPlan,
+      }
+    : toCreateOrgBilling(billing);
   const { createOrganization } = makeCreateOrganizationUseCases({
     onboarding: store.onboarding,
     installDefaults: accessRoles.installDefaults,
-    billing: toCreateOrgBilling(billing),
+    billing: orgBilling,
     clock,
     ids,
   });
@@ -175,6 +194,7 @@ export const createApiRuntime = (config: ApiConfig): ApiRuntime => {
     },
     close: async () => {
       await bison.close();
+      await billingSql?.end();
       await store.close?.();
     },
   };

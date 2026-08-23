@@ -55,7 +55,7 @@ export const issuedRepo = (
         (${issue.id}, ${accountId}, ${issue.entryId}, ${issue.clientId},
          ${issue.folio}, ${issue.issuedAt}, ${issue.issuedBy},
          ${issue.status}, ${issue.supersededBy ?? null}, ${issue.pdfPath},
-         ${JSON.stringify(issue.snapshot)}::jsonb)
+         ${sql.json(issue.snapshot as never)})
       on conflict (id) do update set
         status = excluded.status,
         superseded_by = excluded.superseded_by,

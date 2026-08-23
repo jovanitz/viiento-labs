@@ -51,9 +51,9 @@ export const formatsRepo = (
          footer_tokens, marks, shipped_key, created_at, updated_at)
       values
         (${format.id}, ${accountId}, ${format.name}, ${format.themeId},
-         ${format.paper}, ${JSON.stringify(format.headerTokens)}::jsonb,
-         ${JSON.stringify(format.footerTokens)}::jsonb,
-         ${JSON.stringify(format.marks)}::jsonb,
+         ${format.paper}, ${sql.json(format.headerTokens as never)},
+         ${sql.json(format.footerTokens as never)},
+         ${sql.json(format.marks as never)},
          ${format.shippedKey ?? null}, ${format.createdAt},
          ${format.updatedAt})
       on conflict (id) do update set

@@ -44,7 +44,10 @@
     {
       "name": "bison-api",
       "runtimeExecutable": "sh",
-      "runtimeArgs": ["-c", "npx tsx watch apps/bison/api/src/main.ts"],
+      "runtimeArgs": [
+        "-c",
+        "npx tsx watch apps/bison/api/src/main.ts"
+      ],
       "port": 3333,
       "autoPort": false
     },
@@ -66,6 +69,26 @@
         "npx storybook dev -p 6006 -c libs/ui/.storybook --no-open --host 127.0.0.1"
       ],
       "port": 6006,
+      "autoPort": false
+    },
+    {
+      "name": "bison-api-real",
+      "runtimeExecutable": "sh",
+      "runtimeArgs": [
+        "-c",
+        "cd apps/bison/api && npx tsx watch src/main.ts"
+      ],
+      "port": 3333,
+      "autoPort": false
+    },
+    {
+      "name": "bison-client-real",
+      "runtimeExecutable": "sh",
+      "runtimeArgs": [
+        "-c",
+        "cd apps/bison/client && npx vite --port 4204 --host 127.0.0.1"
+      ],
+      "port": 4204,
       "autoPort": false
     }
   ]

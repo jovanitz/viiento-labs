@@ -53,6 +53,58 @@ if (available) {
   bisonFormatsContract('postgres (supabase local)', makeStore);
   bisonIdentityContract('postgres (supabase local)', makeStore);
 
+  describe('issuance (live counter + snapshot round-trip)', () => {
+    it('allocates monotonic folios atomically, per account', async () => {
+      const world = await makeStore();
+      const other = await makeStore();
+      const folios = await Promise.all(
+        Array.from({ length: 5 }, () => world.folios.next()),
+      );
+      expect([...folios].sort((a, b) => a - b)).toEqual([1, 2, 3, 4, 5]);
+      expect(await other.folios.next()).toBe(1);
+    });
+
+    it('round-trips an issue, snapshot whole, and transitions in place', async () => {
+      const world = await makeStore();
+      const issue = {
+        id: crypto.randomUUID(),
+        entryId: crypto.randomUUID(),
+        clientId: crypto.randomUUID(),
+        folio: 1,
+        issuedAt: '2026-08-21T18:00:00.000Z',
+        issuedBy: 'user-1',
+        status: 'issued',
+        pdfPath: '',
+        snapshot: {
+          templateName: 'Evidencia',
+          blocks: [],
+          values: { b1: 'Consulta' },
+          format: {
+            id: crypto.randomUUID(),
+            name: 'Receta',
+            themeId: 'clinical',
+            paper: 'letter',
+            headerTokens: ['business.name'],
+            footerTokens: ['document.folio'],
+            marks: [],
+            createdAt: '2026-08-21T18:00:00.000Z',
+            updatedAt: '2026-08-21T18:00:00.000Z',
+          },
+          tokens: { 'document.folio': '0001' },
+        },
+      } as never;
+      await world.issued.save(issue);
+      const found = await world.issued.findById((issue as { id: never }).id);
+      expect(found?.snapshot.values).toEqual({ b1: 'Consulta' });
+      expect(found?.pdfPath).toBe('');
+      await world.issued.save({ ...found, pdfPath: `issued/x` } as never);
+      const listed = await world.issued.listByEntry(
+        (issue as { entryId: string }).entryId,
+      );
+      expect(listed[0]?.pdfPath).toBe('issued/x');
+    });
+  });
+
   describe('account scoping', () => {
     it('never leaks rows across accounts', async () => {
       const one = await makeStore();

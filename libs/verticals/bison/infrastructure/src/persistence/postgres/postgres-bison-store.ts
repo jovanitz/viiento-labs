@@ -57,7 +57,7 @@ const templatesRepo = (sql: Sql, accountId: string): TemplateRepository => ({
       values
         (${template.id}, ${accountId}, ${template.name},
          ${template.description}, ${template.icon}, ${template.color},
-         ${template.kind}, ${JSON.stringify(template.blocks)}::jsonb,
+         ${template.kind}, ${sql.json(template.blocks as never)},
          ${template.createdAt}, ${template.updatedAt})
       on conflict (id) do update set
         name = excluded.name,
@@ -97,7 +97,7 @@ const clientsRepo = (sql: Sql, accountId: string): ClientRepository => ({
       values
         (${client.id}, ${accountId}, ${client.name}, ${client.phone},
          ${client.photoPath ?? null},
-         ${JSON.stringify(client.channels)}::jsonb,
+         ${sql.json(client.channels as never)},
          ${client.createdAt}, ${client.updatedAt})
       on conflict (id) do update set
         name = excluded.name,
@@ -119,7 +119,7 @@ const entriesRepo = (sql: Sql, accountId: string): EntryRepository => ({
       values
         (${entry.id}, ${accountId}, ${entry.clientId}, ${entry.templateId},
          ${entry.templateName}, ${entry.icon}, ${entry.color}, ${entry.at},
-         ${entry.summary}, ${JSON.stringify(entry.fields)}::jsonb)
+         ${entry.summary}, ${sql.json(entry.fields as never)})
     `;
   },
   findById: async (id) => {

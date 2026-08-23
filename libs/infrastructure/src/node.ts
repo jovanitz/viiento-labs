@@ -7,6 +7,8 @@
  * composition roots (apps/bison/api) may import this module.
  */
 export * from './access/postgres/postgres-access-store';
+export * from './billing/postgres/plan-catalog-store';
+export * from './billing/postgres/subscription-store';
 
 // Server-only auth adapters (node:crypto / admin secret key — never the browser).
 export * from './auth/provisioning/node-secret-token-service';
