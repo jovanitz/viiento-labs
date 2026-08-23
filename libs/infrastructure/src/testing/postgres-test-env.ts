@@ -2,12 +2,19 @@ import postgres from 'postgres';
 
 /**
  * Shared plumbing for specs that run against the local Supabase Postgres.
- * No credentials: the connection string is the well-known local dev one.
- * Specs probe first and skip visibly when the stack is down.
+ * No credentials: the connection string is the well-known local dev one —
+ * but pointing at the DEDICATED `postgres_test` database (created by
+ * `pnpm stack:testdb`), never at the dev database: these specs WIPE the
+ * world they run against (auth.users included, memberships cascading),
+ * and the dev data must survive a quality-gate run. Deliberately NOT
+ * `SUPABASE_DB_URL` — that is the API's variable, and inheriting it here
+ * was exactly how tests reached the dev database.
+ * Specs probe first and skip visibly when the stack (or the test db) is
+ * missing.
  */
 export const POSTGRES_TEST_URL =
-  process.env['SUPABASE_DB_URL'] ??
-  'postgresql://postgres:postgres@127.0.0.1:54322/postgres';
+  process.env['SUPABASE_TEST_DB_URL'] ??
+  'postgresql://postgres:postgres@127.0.0.1:54322/postgres_test';
 
 export const probePostgres = async (): Promise<boolean> => {
   const sql = postgres(POSTGRES_TEST_URL, { max: 1, connect_timeout: 3 });

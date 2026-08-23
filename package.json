@@ -32,7 +32,8 @@
     "db:reset": "supabase db reset",
     "format": "prettier --write .",
     "format:check": "prettier --check .",
-    "prepare": "git config core.hooksPath .githooks || true"
+    "prepare": "git config core.hooksPath .githooks || true",
+    "stack:testdb": "sh scripts/refresh-test-db.sh"
   },
   "devDependencies": {
     "@nx/eslint": "20.3.0",
