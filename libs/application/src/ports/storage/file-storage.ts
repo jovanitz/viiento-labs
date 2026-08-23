@@ -27,5 +27,14 @@ export type FileStorage = {
     readonly path: string;
     readonly expiresInSeconds: number;
   }) => Promise<Result<string, FileStorageError>>;
+  /**
+   * A one-shot URL the CLIENT can PUT the raw bytes to, so uploads go
+   * straight to the bucket instead of riding through the API as base64.
+   * Adapters without a reachable upload endpoint (in-memory dev) return an
+   * error — callers fall back to `put` through the API.
+   */
+  readonly createSignedUploadUrl: (input: {
+    readonly path: string;
+  }) => Promise<Result<string, FileStorageError>>;
   readonly remove: (path: string) => Promise<Result<void, FileStorageError>>;
 };
