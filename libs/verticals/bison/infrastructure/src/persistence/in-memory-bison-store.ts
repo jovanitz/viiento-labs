@@ -2,6 +2,7 @@ import type {
   AppointmentRepository,
   CalendarBlockRepository,
   ClientRepository,
+  DocumentFormatRepository,
   EntryRepository,
   TemplateRepository,
   VisitSummary,
@@ -10,6 +11,7 @@ import type {
   Appointment,
   CalendarBlock,
   Client,
+  DocumentFormat,
   Entry,
   Template,
 } from '@acme/bison-domain';
@@ -25,6 +27,7 @@ export type BisonAccountStore = {
   readonly entries: EntryRepository;
   readonly appointments: AppointmentRepository;
   readonly calendarBlocks: CalendarBlockRepository;
+  readonly formats: DocumentFormatRepository;
 };
 
 /** Confirmed visits grouped per client, latest first within each group. */
@@ -89,8 +92,16 @@ export const createInMemoryBisonStore = (): BisonAccountStore => {
   const entries: Entry[] = [];
   const appointments = new Map<string, Appointment>();
   const calendarBlocks = new Map<string, CalendarBlock>();
+  const formats = new Map<string, DocumentFormat>();
 
   return {
+    formats: {
+      findById: async (id) => formats.get(id) ?? null,
+      list: async () => [...formats.values()],
+      save: async (format) => {
+        formats.set(format.id, format);
+      },
+    },
     calendarBlocks: {
       list: async () => [...calendarBlocks.values()],
       save: async (block) => {

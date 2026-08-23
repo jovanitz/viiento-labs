@@ -9,3 +9,5 @@ export * from './timeline/entry';
 export * from './agenda/errors';
 export * from './agenda/appointment';
 export * from './agenda/calendar-block';
+export * from './documents/errors';
+export * from './documents/format';

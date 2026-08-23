@@ -1,14 +1,10 @@
-import { useEffect, useState } from 'react';
+import { useEffect } from 'react';
 import { CircleAlert } from 'lucide-react';
 import { Button, EmptyState, toast } from '@acme/ui';
-import { useStore, useTemplatesStore } from '../../store/hooks';
+import { useFormatsStore, useStore, useTemplatesStore } from '../../store/hooks';
 import { TemplatesContainer } from '../templates.container';
 import type { EntryTemplate } from '../templates.types';
-import {
-  SHIPPED_FORMATS,
-  upsertFormat,
-} from '../document/document.format';
-import type { DocumentFormat } from '../document/document.format';
+import { mergeFormats, saveInputOf } from './formats.bridge';
 
 /**
  * The DI-bound Templates section — the library comes from the store
@@ -17,19 +13,21 @@ import type { DocumentFormat } from '../document/document.format';
  * otherwise (the Builder's local id is never sent — block ids are).
  * `TemplatesContainer` and every view under it stay untouched.
  *
- * Formats (ADR-0021 document wrappers) have no backend yet — they stay
- * session-local, seeded with the shipped catalog.
+ * Formats persist too: the catalog shown is the shipped starting points
+ * with the business's copy-on-write overrides merged in, plus its own
+ * customs (formats.bridge.ts).
  */
 export const TemplatesSectionContainer = () => {
   const store = useTemplatesStore();
+  const formatsStore = useFormatsStore();
   const vm = useStore(store, (s) => s.vm);
   const error = useStore(store, (s) => s.error);
-  const [formats, setFormats] =
-    useState<readonly DocumentFormat[]>(SHIPPED_FORMATS);
+  const storedFormats = useStore(formatsStore, (s) => s.formats);
 
   useEffect(() => {
     void store.getState().load();
-  }, [store]);
+    void formatsStore.getState().load();
+  }, [store, formatsStore]);
 
   if (!vm) {
     return error ? (
@@ -67,8 +65,15 @@ export const TemplatesSectionContainer = () => {
     <TemplatesContainer
       templates={templates}
       onSaveTemplate={(template) => void save(template)}
-      formats={formats}
-      onSaveFormat={(format) => setFormats((fs) => upsertFormat(fs, format))}
+      formats={mergeFormats(storedFormats ?? [])}
+      onSaveFormat={(format) =>
+        void formatsStore
+          .getState()
+          .save(saveInputOf(format, storedFormats ?? []))
+          .then((saved) => {
+            if (!saved) toast.error("The format couldn't be saved — try again.");
+          })
+      }
     />
   );
 };

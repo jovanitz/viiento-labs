@@ -10,6 +10,7 @@ import { accessDenied } from '@acme/application';
 import {
   makeAgendaUseCases,
   makeCalendarBlockUseCases,
+  makeFormatUseCases,
   makeClientUseCases,
   makeFileUseCases,
   makeTemplateUseCases,
@@ -18,6 +19,7 @@ import {
 import type {
   AgendaUseCases,
   CalendarBlockUseCases,
+  FormatUseCases,
   ClientUseCases,
   FileUseCases,
   TemplateUseCases,
@@ -45,6 +47,7 @@ export type BisonUseCases = {
   readonly files: FileUseCases;
   readonly agenda: AgendaUseCases;
   readonly calendarBlocks: CalendarBlockUseCases;
+  readonly formats: FormatUseCases;
 };
 
 export const bisonUseCasesOf = (
@@ -76,6 +79,7 @@ export const bisonUseCasesOf = (
       blocks: world.calendarBlocks,
       ...shared,
     }),
+    formats: makeFormatUseCases({ formats: world.formats, ...shared }),
   };
 };
 

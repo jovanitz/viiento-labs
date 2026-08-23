@@ -8,6 +8,7 @@ import type {
 import type { BisonAccountStore } from '../in-memory-bison-store';
 import { appointmentsRepo } from './appointments';
 import { calendarBlocksRepo } from './calendar-blocks';
+import { formatsRepo } from './formats';
 import { clientFromRow, entryFromRow, isUuid, templateFromRow } from './rows';
 
 /**
@@ -89,17 +90,17 @@ const clientsRepo = (sql: Sql, accountId: string): ClientRepository => ({
   save: async (client) => {
     await sql`
       insert into public.bison_clients
-        (id, account_id, name, phone, photo_url, channels,
+        (id, account_id, name, phone, photo_path, channels,
          created_at, updated_at)
       values
         (${client.id}, ${accountId}, ${client.name}, ${client.phone},
-         ${client.photoUrl ?? null},
+         ${client.photoPath ?? null},
          ${JSON.stringify(client.channels)}::jsonb,
          ${client.createdAt}, ${client.updatedAt})
       on conflict (id) do update set
         name = excluded.name,
         phone = excluded.phone,
-        photo_url = excluded.photo_url,
+        photo_path = excluded.photo_path,
         channels = excluded.channels,
         updated_at = excluded.updated_at
       where bison_clients.account_id = excluded.account_id
@@ -145,6 +146,7 @@ export const createPostgresBisonStore = (config: {
       entries: entriesRepo(sql, accountId),
       appointments: appointmentsRepo(sql, accountId),
       calendarBlocks: calendarBlocksRepo(sql, accountId),
+      formats: formatsRepo(sql, accountId),
     }),
     close: () => sql.end(),
   };

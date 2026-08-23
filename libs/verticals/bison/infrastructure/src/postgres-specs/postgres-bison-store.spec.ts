@@ -6,6 +6,7 @@ import {
   probePostgres,
 } from '@acme/infrastructure-node';
 import { bisonAgendaContract } from '../testing/bison-agenda-contract';
+import { bisonFormatsContract } from '../testing/bison-formats-contract';
 import { bisonStoreContract, template } from '../testing/bison-store-contract';
 import { createPostgresBisonStore } from '../persistence/postgres/postgres-bison-store';
 
@@ -48,6 +49,7 @@ if (available) {
 
   bisonStoreContract('postgres (supabase local)', makeStore);
   bisonAgendaContract('postgres (supabase local)', makeStore);
+  bisonFormatsContract('postgres (supabase local)', makeStore);
 
   describe('account scoping', () => {
     it('never leaks rows across accounts', async () => {

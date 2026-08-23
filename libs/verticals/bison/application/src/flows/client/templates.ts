@@ -6,10 +6,14 @@ import type {
 } from '@acme/bison-domain';
 import type { TemplateDto } from '../../templates/dto';
 import type {
+  DocumentFormatDto,
+  SaveFormatInput,
+} from '../../documents/use-cases';
+import type {
   BisonClientGateway,
   BisonGatewayError,
 } from '../../client/gateway';
-import type { BisonClientFlowDeps } from './clients';
+import type { BisonClientFlowDeps } from './deps';
 
 /**
  * The Templates controller: headless orchestration for the template
@@ -55,3 +59,18 @@ export const saveTemplate = (
     ? deps.gateway.templates.update({ id: existingId, changes: template })
     : deps.gateway.templates.create(template);
 };
+
+/* ---------- Document formats (ADR-0021 — the Templates section's second
+ * tab). Thin passthroughs: the shipped catalog is presentation-side; the
+ * backend holds only the business's rows. */
+
+export const loadFormats = (
+  deps: BisonClientFlowDeps,
+): Promise<Result<ReadonlyArray<DocumentFormatDto>, BisonGatewayError>> =>
+  deps.gateway.formats.list();
+
+export const saveFormat = (
+  deps: BisonClientFlowDeps,
+  input: SaveFormatInput,
+): Promise<Result<DocumentFormatDto, BisonGatewayError>> =>
+  deps.gateway.formats.save(input);
