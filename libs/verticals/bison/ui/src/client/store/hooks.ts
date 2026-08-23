@@ -4,6 +4,7 @@ import { useClientUseCases } from '../di';
 import { createAgendaStore, type AgendaStore } from './agenda-store';
 import { createClientGateStore, type ClientGateStore } from './gate-store';
 import { createFormatsStore, type FormatsStore } from './formats-store';
+import { createIdentityStore, type IdentityStore } from './identity-store';
 import { createClientsStore, type ClientsStore } from './clients-store';
 import { createTemplatesStore, type TemplatesStore } from './templates-store';
 
@@ -32,6 +33,11 @@ export const useAgendaStore = (): AgendaStore => {
 export const useFormatsStore = (): FormatsStore => {
   const { gateway } = useClientUseCases();
   return useMemo(() => createFormatsStore({ gateway }), [gateway]);
+};
+
+export const useIdentityStore = (): IdentityStore => {
+  const { gateway } = useClientUseCases();
+  return useMemo(() => createIdentityStore({ gateway }), [gateway]);
 };
 
 export const useClientGateStore = (): ClientGateStore => {

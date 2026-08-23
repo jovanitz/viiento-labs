@@ -32,6 +32,7 @@ export type DocumentToken =
   | 'business.name'
   | 'business.address'
   | 'business.phone'
+  | 'business.license'
   | 'client.name'
   | 'document.folio'
   | 'document.issuedAt';

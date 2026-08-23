@@ -18,6 +18,7 @@ export type DocumentToken =
   | 'business.name'
   | 'business.address'
   | 'business.phone'
+  | 'business.license'
   | 'client.name'
   | 'document.folio'
   | 'document.issuedAt';
@@ -29,6 +30,7 @@ export const TOKEN_LABEL: Record<DocumentToken, string> = {
   'business.name': 'Business name',
   'business.address': 'Business address',
   'business.phone': 'Business phone',
+  'business.license': 'License',
   'client.name': 'Client name',
   'document.folio': 'Folio',
   'document.issuedAt': 'Issue date',
