@@ -8,17 +8,11 @@
  * Four themes chosen to span the real space: dense-and-official,
  * traditional-and-formal, quiet-and-modern, branded.
  */
-import type { DocumentThemeVM, FamilyKey, PaperKind } from './document.types';
+import type { DocumentThemeVM, FamilyKey } from './document.types';
 
-/** Point size of each paper, portrait. The preview scales these to px. */
-export const PAPER_PT: Record<
-  PaperKind,
-  { readonly w: number; readonly h: number }
-> = {
-  letter: { w: 612, h: 792 },
-  a4: { w: 595, h: 842 },
-  'half-letter': { w: 396, h: 612 },
-};
+// Geometry constants live with the engine now; the preview keeps reading
+// them from here so the render files never changed their imports.
+export { PAPER_PT, RHYTHM } from '@acme/application';
 
 /** Only families we ship — the union is closed for a reason, see
  *  document.types.ts. */
@@ -28,13 +22,7 @@ export const FONT_STACK: Record<FamilyKey, string> = {
   slab: "'Roboto Slab', 'Bookman Old Style', Georgia, serif",
 };
 
-/** Vertical rhythm in points, by density — one scale, applied everywhere,
- *  so nothing on the page floats off-grid. */
-export const RHYTHM: Record<DocumentThemeVM['density'], number> = {
-  compact: 7,
-  regular: 11,
-  airy: 17,
-};
+
 
 /** Dense, official, label-forward. The default for records that get filed:
  *  much information per page, still legible at arm's length. */

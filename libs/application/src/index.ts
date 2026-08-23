@@ -1,6 +1,10 @@
 // Ports (abstractions the outside world must satisfy)
 export * from './ports/event-publisher';
-export * from './ports/file-storage';
+export * from './ports/storage/file-storage';
+export * from './ports/storage/kv-cache';
+// Documents (ADR-0020/0021): renderer port + the engine bridged to ui.
+export * from './documents/ports';
+export * from './documents/engine';
 export * from './ports/auth';
 export * from './ports/api';
 export * from './ports/notifications';

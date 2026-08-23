@@ -1,4 +1,4 @@
-import type { AccessClientUseCases } from '@acme/application';
+import type { AccessClientUseCases, DocumentRenderer } from '@acme/application';
 import type { BisonClientFlowDeps } from '@acme/bison-application';
 import { createUseCasesSeam } from '@acme/ui';
 
@@ -11,6 +11,10 @@ import { createUseCasesSeam } from '@acme/ui';
 export type BisonClientAppUseCases = BisonClientFlowDeps & {
   /** Sign-in/out + the session gate's access snapshot. */
   readonly access: AccessClientUseCases;
+  /** Documents leave the business as PDF bytes (ADR-0020 §8). */
+  readonly documents: {
+    readonly renderer: DocumentRenderer;
+  };
 };
 
 export const {

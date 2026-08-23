@@ -4,3 +4,4 @@
 // (`@acme/bison-infrastructure-node`) instead.
 export * from './persistence/in-memory-bison-store';
 export * from './client/rpc-bison-gateway';
+export * from './client/offline-bison-gateway';

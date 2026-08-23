@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { toast } from '@acme/ui';
 import type { ClientDetailVM, TimelineEntryVM } from '@acme/bison-application';
 import { ClientDetailView } from '../client-detail/client-detail.view';
@@ -12,7 +12,10 @@ import type {
 } from '../client-detail/timeline/timeline.types';
 import type { EntryTemplate } from '../../templates/templates.types';
 import { EntryDocument } from '../../templates/document/document.prototype';
-import { SHIPPED_FORMATS } from '../../templates/document/document.format';
+import { mergeFormats } from '../../templates/wired/formats.bridge';
+import { FileUrlResolverProvider } from '../../templates/values/file-url-context';
+import { useFormatsStore, useStore } from '../../store/hooks';
+import { useIssuePdf } from './clients.wired.issue';
 
 /**
  * The WIRED client detail: renders the same approved views as the
@@ -158,31 +161,43 @@ export const WiredClientDetail = ({
   onBack,
   onSaveContact,
   onLogEntry,
+  onResolveFileUrl,
 }: {
   readonly detail: ClientDetailVM;
   readonly onBack: () => void;
   readonly onSaveContact: (draft: ClientDraft) => Promise<boolean>;
   readonly onLogEntry: (input: LogEntryInput) => Promise<boolean>;
+  /** Signed-URL resolver for stored file values (downloads). */
+  readonly onResolveFileUrl: (storagePath: string) => Promise<string | null>;
 }) => {
   const templates = detail.templates as readonly EntryTemplate[];
   const timeline = useDraftTimeline(onLogEntry);
+  const onIssuePdf = useIssuePdf();
   const [documentEntryId, setDocumentEntryId] = useState<string>();
-  const [formats] = useState(SHIPPED_FORMATS);
+  const formatsStore = useFormatsStore();
+  const storedFormats = useStore(formatsStore, (s) => s.formats);
+  useEffect(() => {
+    void formatsStore.getState().load();
+  }, [formatsStore]);
+  const formats = mergeFormats(storedFormats ?? []);
 
   const target = documentTarget(detail, templates, documentEntryId);
   if (target)
     return (
-      <EntryDocument
-        template={target.template}
-        formats={formats}
-        values={target.values}
-        clientName={detail.client.name}
-        onBack={() => setDocumentEntryId(undefined)}
-      />
+      <FileUrlResolverProvider resolver={onResolveFileUrl}>
+        <EntryDocument
+          template={target.template}
+          formats={formats}
+          values={target.values}
+          clientName={detail.client.name}
+          onBack={() => setDocumentEntryId(undefined)}
+          onIssuePdf={onIssuePdf}
+        />
+      </FileUrlResolverProvider>
     );
 
   return (
-    <>
+    <FileUrlResolverProvider resolver={onResolveFileUrl}>
       <ClientDetailView
         client={detail.client}
         onBack={onBack}
@@ -203,6 +218,6 @@ export const WiredClientDetail = ({
         templates={templates}
         onSelectTemplate={timeline.pick}
       />
-    </>
+    </FileUrlResolverProvider>
   );
 };

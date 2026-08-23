@@ -2,6 +2,7 @@
 export * from './persistence/in-memory-item-repository';
 export * from './persistence/dexie-db';
 export * from './persistence/dexie-item-repository';
+export * from './persistence/dexie-kv-cache';
 
 // API adapters
 export * from './api/http-api-client';
@@ -32,6 +33,9 @@ export * from './billing/usage/entitlement-usage-reader';
 export * from './billing-ledger/in-memory/in-memory-charge-store';
 export * from './billing-ledger/in-memory/in-memory-payment-store';
 
+// Document renderer (ADR-0020 §8): the client-side pdf-lib painter.
+export * from './documents/pdf-document-renderer';
+
 // File storage adapters: in-memory reference (browser-safe). The Supabase
 // Storage adapter (./storage/supabase-file-storage) authenticates with the
 // SECRET key, so it ships only through the node entry point.
@@ -49,6 +53,7 @@ export * from './auth/provisioning/identity-purgers';
 
 // Access client adapters (browser-safe: fetch/ApiClient only)
 export * from './access-client/rpc-access-gateway';
+export * from './access-client/offline-access-gateway';
 export * from './access-client/gateways/rpc-directory-gateway';
 export * from './access-client/gateways/rpc-invitations-gateway';
 export * from './access-client/gateways/rpc-activation-gateway';

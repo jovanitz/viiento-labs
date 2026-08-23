@@ -9,7 +9,10 @@
  * Pure — no React, no browser. Stand-in for the pure engine's `resolve()`
  * (ADR-0020 §8, which still stands); `deriveSections` becomes part of it.
  */
+import { paginateDocument } from '@acme/application';
+import type { DocumentModel, TextMeasure } from '@acme/application';
 import { STRUCTURAL_KINDS, WIDTH_COLUMNS } from '../templates.types';
+import { canvasTextMeasure } from './render/document.measure';
 import type {
   EntryTemplate,
   FieldWidth,
@@ -23,7 +26,6 @@ import type { DocumentFormat } from './document.format';
 import type {
   BandVM,
   DocumentPreviewVM,
-  DocumentVM,
   IssueBlockerVM,
   RowVM,
   SectionVM,
@@ -168,7 +170,9 @@ export const blockersFor = (
       message: `“${b.label}” has no value on this entry.`,
     }));
 
-export const composeDocument = ({
+/** The flowing document, before pagination — schema-derived body wrapped
+ *  by the format (ADR-0021). */
+export const composeModel = ({
   format,
   template,
   values,
@@ -178,7 +182,7 @@ export const composeDocument = ({
   readonly template: EntryTemplate;
   readonly values: EntryValues;
   readonly tokens: TokenValues;
-}): DocumentVM => {
+}): DocumentModel => {
   const header = bandFromTokens(format.headerTokens, tokens);
   const footer = bandFromTokens(format.footerTokens, tokens);
   return {
@@ -188,7 +192,7 @@ export const composeDocument = ({
     ...(header ? { header } : {}),
     ...(footer ? { footer } : {}),
     marks: format.marks,
-    pages: [{ sections: deriveSections(template, values) }],
+    sections: deriveSections(template, values),
   };
 };
 
@@ -198,14 +202,19 @@ export const documentPreview = ({
   values,
   tokens,
   sample,
+  measure = canvasTextMeasure,
 }: {
   readonly format: DocumentFormat;
   readonly template: EntryTemplate;
   readonly values: EntryValues;
   readonly tokens: TokenValues;
   readonly sample?: DocumentPreviewVM['sample'] | undefined;
+  readonly measure?: TextMeasure;
 }): DocumentPreviewVM => ({
-  document: composeDocument({ format, template, values, tokens }),
+  document: paginateDocument(
+    composeModel({ format, template, values, tokens }),
+    measure,
+  ),
   blockers: blockersFor(template, values),
   ...(sample ? { sample } : {}),
 });

@@ -6,9 +6,11 @@
  * vibrates in print exactly as it does on screen.
  */
 
-export const INK = '#1c1c1c';
-export const INK_MUTED = '#6b6b6b';
-export const HAIRLINE = '#d9d9d9';
+import { DOC_HAIRLINE, DOC_INK, DOC_INK_MUTED } from '@acme/application';
+
+export const INK = DOC_INK;
+export const INK_MUTED = DOC_INK_MUTED;
+export const HAIRLINE = DOC_HAIRLINE;
 
 /** Points → pixels. Passed down so screen units enter the document in
  *  exactly one place (the preview's zoom), never inside a renderer. */

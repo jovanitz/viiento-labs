@@ -2,3 +2,16 @@
  * (Tailwind + tokens). Kept as a thin local entry so Vite resolves it within
  * this app; the real tokens/components live in libs/ui's design system. */
 @import '../../../../libs/ui/src/design-system/styles.css';
+
+/* Shipped document fonts (ADR-0020 §3): the SAME files the PDF adapter
+ * embeds, so the on-screen document preview and the issued file share
+ * metrics. Weights: 400 body / 600 labels / 700 titles. */
+@font-face { font-family: 'Inter'; font-weight: 400; src: url('./assets/fonts/Inter-Regular.otf') format('opentype'); font-display: swap; }
+@font-face { font-family: 'Inter'; font-weight: 600; src: url('./assets/fonts/Inter-SemiBold.otf') format('opentype'); font-display: swap; }
+@font-face { font-family: 'Inter'; font-weight: 700; src: url('./assets/fonts/Inter-Bold.otf') format('opentype'); font-display: swap; }
+@font-face { font-family: 'Source Serif 4'; font-weight: 400; src: url('./assets/fonts/SourceSerif4-Regular.otf') format('opentype'); font-display: swap; }
+@font-face { font-family: 'Source Serif 4'; font-weight: 600; src: url('./assets/fonts/SourceSerif4-Semibold.otf') format('opentype'); font-display: swap; }
+@font-face { font-family: 'Source Serif 4'; font-weight: 700; src: url('./assets/fonts/SourceSerif4-Bold.otf') format('opentype'); font-display: swap; }
+@font-face { font-family: 'Roboto Slab'; font-weight: 400; src: url('./assets/fonts/RobotoSlab-Regular.ttf') format('truetype'); font-display: swap; }
+@font-face { font-family: 'Roboto Slab'; font-weight: 600; src: url('./assets/fonts/RobotoSlab-SemiBold.ttf') format('truetype'); font-display: swap; }
+@font-face { font-family: 'Roboto Slab'; font-weight: 700; src: url('./assets/fonts/RobotoSlab-Bold.ttf') format('truetype'); font-display: swap; }
