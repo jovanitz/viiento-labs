@@ -1,12 +1,13 @@
 import { describe, expect, it } from 'vitest';
 import { err, ok } from '@acme/shared';
+import { encodeFileRef } from '@acme/bison-domain';
 import { findFlowCommand } from '@acme/application';
 import type { ClientDto } from '../../clients/dto';
 import type { EntryDto } from '../../timeline/dto';
 import type { TemplateDto } from '../../templates/dto';
 import { bisonGatewayError } from '../../client/gateway';
 import type { BisonClientGateway } from '../../client/gateway';
-import { loadClientDetail, loadClients } from './clients';
+import { createClient, loadClientDetail, loadClients } from './clients';
 import { BISON_CLIENT_FLOWS } from './registry';
 
 /**
@@ -66,9 +67,13 @@ const fakeGateway = () => {
         clients.push(client);
         return ok(client);
       },
-      updateContact: async ({ id }) => {
-        const found = clients.find((c) => c.id === id);
-        return found ? ok(found) : err(bisonGatewayError(`No client ${id}.`));
+      updateContact: async ({ id, changes }) => {
+        const index = clients.findIndex((c) => c.id === id);
+        const found = clients[index];
+        if (!found) return err(bisonGatewayError(`No client ${id}.`));
+        const updated = { ...found, ...changes };
+        clients[index] = updated;
+        return ok(updated);
       },
     },
     timeline: {
@@ -101,7 +106,15 @@ const fakeGateway = () => {
       },
     },
     files: {
-      attach: async () => ok('{"kind":"file"}'),
+      attach: async ({ clientId, name, mime, bytesBase64 }) =>
+        ok(
+          encodeFileRef({
+            name,
+            mime,
+            size: bytesBase64.length,
+            storagePath: `clients/${clientId}/f1`,
+          }),
+        ),
       url: async () => ok('memory://x'),
     },
     agenda: {
@@ -124,6 +137,12 @@ const fakeGateway = () => {
         remove: async () => ok(undefined),
       },
     },
+    formats: {
+      list: async () => ok([]),
+      save: async () => {
+        throw new Error('not exercised here');
+      },
+    },
   };
   return gateway;
 };
@@ -137,6 +156,19 @@ describe('bison client flows', () => {
     if (!vm.ok) return;
     expect(vm.value.summary).toBe('1 client');
     expect(vm.value.clients[0]?.visitCount).toBe(0);
+  });
+
+  it('uploads a picked photo and persists only its storage path', async () => {
+    const deps = { gateway: fakeGateway() };
+    const created = await createClient(deps, {
+      name: 'Diana',
+      photoDataUrl: 'data:image/png;base64,QUJD',
+    });
+    expect(created.ok).toBe(true);
+    if (created.ok) {
+      expect(created.value.photoPath).toBe(`clients/${created.value.id}/f1`);
+      expect(created.value.photoUrl).toBeUndefined();
+    }
   });
 
   it('groups the detail timeline into labeled days, newest first', async () => {

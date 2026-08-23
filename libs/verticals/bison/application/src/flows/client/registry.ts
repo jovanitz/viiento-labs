@@ -20,9 +20,15 @@ import {
   logTimelineEntry,
   updateClientContact,
 } from './clients';
-import { loadTemplates, saveTemplate } from './templates';
+import {
+  loadFormats,
+  loadTemplates,
+  saveFormat,
+  saveTemplate,
+} from './templates';
 import type { SaveTemplateInput } from './templates';
-import { AGENDA_FLOWS } from './registry-agenda';
+import type { SaveFormatInput } from '../../documents/use-cases';
+import { AGENDA_FLOWS } from './agenda/registry-agenda';
 
 /**
  * The bison CLIENT app's flow catalog (ADR-0017: each giro's apps own their
@@ -136,6 +142,33 @@ export const BISON_CLIENT_FLOWS: ReadonlyArray<
       'reference them).',
     input: saveTemplateInput,
     run: (deps, input) => saveTemplate(deps, input as SaveTemplateInput),
+  },
+  {
+    name: 'bison.formats.board',
+    kind: 'query',
+    description:
+      "The account's document formats (backend rows only — the shipped " +
+      'catalog is app-side).',
+    input: empty,
+    run: (deps) => loadFormats(deps),
+  },
+  {
+    name: 'bison.formats.save',
+    kind: 'command',
+    description:
+      'Persist a format: update by existingId, create otherwise (editing ' +
+      'a shipped starting point creates a copy-on-write row).',
+    input: z.object({
+      existingId: z.string().min(1).optional(),
+      shippedKey: z.string().min(1).max(64).optional(),
+      name: z.string().min(1).max(80),
+      themeId: z.string().min(1).max(40),
+      paper: z.enum(['letter', 'a4', 'half-letter']),
+      headerTokens: z.array(z.string()).max(6),
+      footerTokens: z.array(z.string()).max(6),
+      marks: z.array(z.record(z.unknown())).max(4),
+    }),
+    run: (deps, input) => saveFormat(deps, input as SaveFormatInput),
   },
   ...AGENDA_FLOWS,
 ];

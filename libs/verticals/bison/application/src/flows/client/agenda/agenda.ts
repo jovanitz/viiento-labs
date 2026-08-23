@@ -1,8 +1,8 @@
 import { type Result, err, ok } from '@acme/shared';
 import type { AppointmentMove, AppointmentStatus } from '@acme/bison-domain';
-import type { AppointmentDto } from '../../agenda/dto';
-import type { BisonGatewayError } from '../../client/gateway';
-import type { BisonClientFlowDeps } from './clients';
+import type { AppointmentDto } from '../../../agenda/dto';
+import type { BisonGatewayError } from '../../../client/gateway';
+import type { BisonClientFlowDeps } from '../clients';
 
 /**
  * The Agenda controller: one day's grid as a ViewModel — wall-clock labels

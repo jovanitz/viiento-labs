@@ -1,10 +1,10 @@
 import { describe, expect, it } from 'vitest';
 import { ok } from '@acme/shared';
 import { findFlowCommand } from '@acme/application';
-import type { AppointmentDto } from '../../agenda/dto';
-import type { BisonClientGateway } from '../../client/gateway';
+import type { AppointmentDto } from '../../../agenda/dto';
+import type { BisonClientGateway } from '../../../client/gateway';
 import { loadAgendaDay, timeOfMinutes } from './agenda';
-import { BISON_CLIENT_FLOWS } from './registry';
+import { BISON_CLIENT_FLOWS } from '../registry';
 
 const appointment = (over: Partial<AppointmentDto> = {}): AppointmentDto => ({
   id: 'apt-1',

@@ -154,6 +154,7 @@ generated — they are behavior, not documentation:
 | `bison.timeline.log` | — (any authenticated actor) | Fill a template onto a client's timeline. Values are keyed by block id; the domain validates the whole fill (required, choices, unknown blocks) and reports every offender at once. |
 | `bison.files.attach` | — (any authenticated actor) | Store a captured file (image/document) in the account's bucket and return the encoded FileRef string — the value a `file` block holds. The client must exist in this account. |
 | `bison.files.url` | — (any authenticated actor) | Resolve a FileRef's storagePath to a short-lived signed URL. Only paths whose client exists in this account's world are signed. |
+| `bison.files.uploadUrl` | — (any authenticated actor) | Reserve a direct-upload slot: a one-shot signed URL the client PUTs the raw bytes to (no base64 through the API) plus the ready FileRef value. 502 when storage has no upload endpoint (dev stub) — callers fall back to attach. |
 | `bison.agenda.list` | — (any authenticated actor) | One day's appointments by start time, canceled included (they are history, not noise). |
 | `bison.agenda.book` | — (any authenticated actor) | Book a slot for a roster client (the name is denormalized from the record). Overlaps are legal — the Reorder modes are UI policy. |
 | `bison.agenda.reschedule` | — (any authenticated actor) | Move a confirmed appointment in place (date/start/duration) — a canceled one is off the books and must be re-booked. |
@@ -162,6 +163,8 @@ generated — they are behavior, not documentation:
 | `bison.agenda.blocks.list` | — (any authenticated actor) | The account's blocked time (ranges and weekly recurrences). |
 | `bison.agenda.blocks.add` | — (any authenticated actor) | Block time: a date range (one day or a run) or a weekly recurrence (0 = Sunday). Every scheduling rule treats it as a wall. |
 | `bison.agenda.blocks.remove` | — (any authenticated actor) | Delete a block — a recurring one goes with its whole series. Idempotent. |
+| `bison.formats.list` | — (any authenticated actor) | The account's document formats (ADR-0021 wrappers). Shipped starting points live in the app; rows here are the business’s own, with shippedKey provenance when they override one. |
+| `bison.formats.save` | — (any authenticated actor) | Persist a format: update when existingId names a backend row, create otherwise (editing a shipped starting point creates a copy-on-write row carrying its shippedKey). |
 | `access.current` | — (any authenticated actor) | The caller's current access snapshot: permissions, active grants, session. |
 | `audit.list` | `audit.read` | Read the append-only security audit trail. |
 | `account.disable` | `account.disable` | Disable an account; every session on it is denied from the next request. |

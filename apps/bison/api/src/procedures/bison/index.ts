@@ -1,6 +1,7 @@
 import type { ApiProcedure } from '../../rpc/procedure';
 import { createBisonAgendaProcedures } from './agenda-procedures';
 import { createBisonClientProcedures } from './clients-procedures';
+import { createBisonDocumentProcedures } from './documents-procedures';
 import { createBisonFileProcedures } from './files-procedures';
 import { createBisonTemplateProcedures } from './templates-procedures';
 import { createBisonTimelineProcedures } from './timeline-procedures';
@@ -22,4 +23,5 @@ export const createBisonProcedures = (
   ...createBisonTimelineProcedures(deps),
   ...createBisonFileProcedures(deps),
   ...createBisonAgendaProcedures(deps),
+  ...createBisonDocumentProcedures(deps),
 ];

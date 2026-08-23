@@ -17,6 +17,8 @@ export const withPathPrefix = (
       storage.put({ path: scoped(path), bytes, mime }),
     getSignedUrl: ({ path, expiresInSeconds }) =>
       storage.getSignedUrl({ path: scoped(path), expiresInSeconds }),
+    createSignedUploadUrl: ({ path }) =>
+      storage.createSignedUploadUrl({ path: scoped(path) }),
     remove: (path) => storage.remove(scoped(path)),
   };
 };

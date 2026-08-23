@@ -1,6 +1,6 @@
 import { z } from 'zod';
 import type { FlowCommand } from '@acme/application';
-import type { BisonClientFlowDeps } from './clients';
+import type { BisonClientFlowDeps } from '../clients';
 import {
   addCalendarBlock,
   bookAppointment,

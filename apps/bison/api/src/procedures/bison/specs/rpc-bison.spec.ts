@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { callRpc, errorTag, testRuntime } from '../../testing/rpc-harness';
+import { callRpc, errorTag, testRuntime } from '../../../testing/rpc-harness';
 
 /**
  * Per-procedure contracts for the bison client surface, end-to-end through
@@ -112,7 +112,8 @@ describe('the bison client surface', () => {
     const url = await rpc<string>(app, 'bison.files.url', {
       storagePath: ref.storagePath,
     });
-    expect(url).toContain(ref.storagePath);
+    // The dev adapter signs a data URL that actually serves the bytes.
+    expect(url).toBe('data:image/png;base64,AQIDBA==');
 
     const foreign = await callRpc(app, 'bison.files.url', {
       token: TOKEN,

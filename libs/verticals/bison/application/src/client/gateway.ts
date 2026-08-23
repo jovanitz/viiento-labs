@@ -10,6 +10,10 @@ import type {
 } from '@acme/bison-domain';
 import type { AppointmentDto, VisitSummaryDto } from '../agenda/dto';
 import type { CalendarBlockDto } from '../agenda/blocks-use-cases';
+import type {
+  DocumentFormatDto,
+  SaveFormatInput,
+} from '../documents/use-cases';
 import type { ClientDto } from '../clients/dto';
 import type { TemplateBlockInput } from '../templates/use-cases';
 import type { TemplateDto } from '../templates/dto';
@@ -111,5 +115,9 @@ export type BisonClientGateway = {
       }) => Reply<CalendarBlockDto>;
       readonly remove: (input: { readonly id: string }) => Reply<void>;
     };
+  };
+  readonly formats: {
+    readonly list: () => Reply<ReadonlyArray<DocumentFormatDto>>;
+    readonly save: (input: SaveFormatInput) => Reply<DocumentFormatDto>;
   };
 };

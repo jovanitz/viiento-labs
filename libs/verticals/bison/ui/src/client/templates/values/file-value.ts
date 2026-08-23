@@ -14,31 +14,49 @@ export type FileValue = {
   readonly mime: string;
   /** Bytes. */
   readonly size: number;
-  /** The content itself, so the prototype needs no storage and the
-   *  printed page can embed images. */
+  /** The content itself — a freshly picked file, not yet uploaded. Empty
+   *  once the fill was logged: stored values carry a `storagePath` instead
+   *  (the domain's FileRef), and previews/downloads need a signed URL. */
   readonly dataUrl: string;
+  /** Where a STORED value's bytes live (the domain FileRef's path). */
+  readonly storagePath?: string | undefined;
 };
 
 export const encodeFileValue = (file: FileValue): string =>
   JSON.stringify({ kind: 'file', ...file });
 
+const isFileShape = (
+  parsed: unknown,
+): parsed is Partial<FileValue> &
+  Pick<FileValue, 'name' | 'mime' | 'size'> & {
+    readonly storagePath?: string;
+  } =>
+  typeof parsed === 'object' &&
+  parsed !== null &&
+  (parsed as { kind?: unknown }).kind === 'file' &&
+  typeof (parsed as { name?: unknown }).name === 'string' &&
+  typeof (parsed as { mime?: unknown }).mime === 'string' &&
+  typeof (parsed as { size?: unknown }).size === 'number';
+
 export const decodeFileValue = (value: string): FileValue | undefined => {
   if (!value.startsWith('{')) return undefined;
   try {
     const parsed: unknown = JSON.parse(value);
+    if (!isFileShape(parsed)) return undefined;
+    // Either shape: bytes still on board (dataUrl) or stored (FileRef).
     if (
-      typeof parsed === 'object' &&
-      parsed !== null &&
-      (parsed as { kind?: unknown }).kind === 'file' &&
-      typeof (parsed as { name?: unknown }).name === 'string' &&
-      typeof (parsed as { mime?: unknown }).mime === 'string' &&
-      typeof (parsed as { size?: unknown }).size === 'number' &&
-      typeof (parsed as { dataUrl?: unknown }).dataUrl === 'string'
+      typeof parsed.dataUrl !== 'string' &&
+      typeof parsed.storagePath !== 'string'
     ) {
-      const { name, mime, size, dataUrl } = parsed as FileValue;
-      return { name, mime, size, dataUrl };
+      return undefined;
     }
-    return undefined;
+    return {
+      name: parsed.name,
+      mime: parsed.mime,
+      size: parsed.size,
+      dataUrl: parsed.dataUrl ?? '',
+      storagePath: parsed.storagePath,
+    };
   } catch {
     return undefined;
   }

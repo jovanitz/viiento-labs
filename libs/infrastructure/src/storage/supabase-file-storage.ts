@@ -23,35 +23,51 @@ export type SupabaseFileStorageConfig = {
   readonly fetchFn?: typeof fetch;
 };
 
+/** Unwrap a sign/upload-sign response's relative URL into an absolute one. */
+const urlOf = async (
+  base: string,
+  field: 'signedURL' | 'url',
+  response: Promise<Result<Response, FileStorageError>>,
+): Promise<Result<string, FileStorageError>> => {
+  const result = await response;
+  if (!result.ok) return err(result.error);
+  const payload = (await result.value.json()) as Record<string, unknown>;
+  const url = payload[field];
+  if (typeof url !== 'string') {
+    return err(fileStorageFailed('Storage sign returned no URL.'));
+  }
+  return ok(`${base}${url}`);
+};
+
+const call = async (
+  operation: string,
+  request: () => Promise<Response>,
+): Promise<Result<Response, FileStorageError>> => {
+  try {
+    const response = await request();
+    if (!response.ok) {
+      return err(
+        fileStorageFailed(
+          `Storage ${operation} failed with status ${response.status}.`,
+        ),
+      );
+    }
+    return ok(response);
+  } catch (cause) {
+    return err(
+      fileStorageFailed(
+        `Storage ${operation} failed: ${cause instanceof Error ? cause.message : 'network error'}.`,
+      ),
+    );
+  }
+};
+
 export const createSupabaseFileStorage = (
   config: SupabaseFileStorageConfig,
 ): FileStorage => {
   const fetchFn = config.fetchFn ?? fetch;
   const base = `${config.supabaseUrl.replace(/\/$/, '')}/storage/v1`;
   const auth = { Authorization: `Bearer ${config.serviceKey}` };
-
-  const call = async (
-    operation: string,
-    request: () => Promise<Response>,
-  ): Promise<Result<Response, FileStorageError>> => {
-    try {
-      const response = await request();
-      if (!response.ok) {
-        return err(
-          fileStorageFailed(
-            `Storage ${operation} failed with status ${response.status}.`,
-          ),
-        );
-      }
-      return ok(response);
-    } catch (cause) {
-      return err(
-        fileStorageFailed(
-          `Storage ${operation} failed: ${cause instanceof Error ? cause.message : 'network error'}.`,
-        ),
-      );
-    }
-  };
 
   return {
     put: async ({ path, bytes, mime }) => {
@@ -70,23 +86,30 @@ export const createSupabaseFileStorage = (
       return response.ok ? ok(undefined) : err(response.error);
     },
 
-    getSignedUrl: async ({ path, expiresInSeconds }) => {
-      const response = await call('sign', () =>
-        fetchFn(`${base}/object/sign/${config.bucket}/${path}`, {
-          method: 'POST',
-          headers: { ...auth, 'Content-Type': 'application/json' },
-          body: JSON.stringify({ expiresIn: expiresInSeconds }),
-        }),
-      );
-      if (!response.ok) return err(response.error);
-      const payload = (await response.value.json()) as {
-        readonly signedURL?: string;
-      };
-      if (!payload.signedURL) {
-        return err(fileStorageFailed('Storage sign returned no URL.'));
-      }
-      return ok(`${base}${payload.signedURL}`);
-    },
+    getSignedUrl: ({ path, expiresInSeconds }) =>
+      urlOf(
+        base,
+        'signedURL',
+        call('sign', () =>
+          fetchFn(`${base}/object/sign/${config.bucket}/${path}`, {
+            method: 'POST',
+            headers: { ...auth, 'Content-Type': 'application/json' },
+            body: JSON.stringify({ expiresIn: expiresInSeconds }),
+          }),
+        ),
+      ),
+
+    createSignedUploadUrl: ({ path }) =>
+      urlOf(
+        base,
+        'url',
+        call('upload-sign', () =>
+          fetchFn(`${base}/object/upload/sign/${config.bucket}/${path}`, {
+            method: 'POST',
+            headers: auth,
+          }),
+        ),
+      ),
 
     remove: async (path) => {
       const response = await call('remove', () =>

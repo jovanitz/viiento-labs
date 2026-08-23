@@ -74,3 +74,79 @@ describe('createRpcBisonGateway', () => {
     }
   });
 });
+
+describe('files.attach — direct upload with fallback', () => {
+  const input = {
+    clientId: 'cli-1',
+    name: 'radiografia.png',
+    mime: 'image/png',
+    bytesBase64: btoa('PNGDATA'),
+  };
+
+  it('reserves a slot, PUTs the raw bytes, and returns the ready value', async () => {
+    const { api, requests } = fakeApi(async (req) =>
+      req.operation === 'bison.files.uploadUrl'
+        ? ok({
+            data: { uploadUrl: 'https://bucket/upload?token=t', value: 'REF' },
+          })
+        : err({ tag: 'api/status', message: 'should not be called' }),
+    );
+    const puts: Array<{ url: string; mime: string; size: number }> = [];
+    const fetchFn = (async (url: unknown, init?: RequestInit) => {
+      puts.push({
+        url: String(url),
+        mime: (init?.headers as Record<string, string>)['Content-Type'],
+        size: (init?.body as ArrayBuffer).byteLength,
+      });
+      return new Response('{}', { status: 200 });
+    }) as typeof fetch;
+
+    const result = await createRpcBisonGateway({ api, fetchFn }).files.attach(
+      input,
+    );
+    expect(result.ok).toBe(true);
+    if (result.ok) expect(result.value).toBe('REF');
+    expect(puts).toEqual([
+      { url: 'https://bucket/upload?token=t', mime: 'image/png', size: 7 },
+    ]);
+    expect(requests.map((r) => r.operation)).toEqual(['bison.files.uploadUrl']);
+  });
+
+  it('falls back to the base64 attach when the slot is unavailable', async () => {
+    const { api, requests } = fakeApi(async (req) =>
+      req.operation === 'bison.files.uploadUrl'
+        ? err({ tag: 'api/status', message: 'no storage', status: 502 })
+        : ok({ data: 'REF-FALLBACK' }),
+    );
+    const result = await createRpcBisonGateway({
+      api,
+      fetchFn: (async () => {
+        throw new Error('must not PUT');
+      }) as typeof fetch,
+    }).files.attach(input);
+    expect(result.ok).toBe(true);
+    if (result.ok) expect(result.value).toBe('REF-FALLBACK');
+    expect(requests.map((r) => r.operation)).toEqual([
+      'bison.files.uploadUrl',
+      'bison.files.attach',
+    ]);
+  });
+
+  it('falls back when the PUT itself fails', async () => {
+    const { api, requests } = fakeApi(async (req) =>
+      req.operation === 'bison.files.uploadUrl'
+        ? ok({ data: { uploadUrl: 'https://bucket/u', value: 'REF' } })
+        : ok({ data: 'REF-FALLBACK' }),
+    );
+    const result = await createRpcBisonGateway({
+      api,
+      fetchFn: (async () => new Response('nope', { status: 500 })) as typeof fetch,
+    }).files.attach(input);
+    expect(result.ok).toBe(true);
+    if (result.ok) expect(result.value).toBe('REF-FALLBACK');
+    expect(requests.map((r) => r.operation)).toEqual([
+      'bison.files.uploadUrl',
+      'bison.files.attach',
+    ]);
+  });
+});

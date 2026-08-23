@@ -60,7 +60,34 @@ const fileUrl = (deps: BisonProcedureDeps): ApiProcedure =>
       }),
   });
 
-/** Captured files: bytes in via base64 (for now), reads via signed URLs. */
+const uploadUrl = (deps: BisonProcedureDeps): ApiProcedure =>
+  defineApiProcedure({
+    name: 'bison.files.uploadUrl',
+    summary:
+      'Reserve a direct-upload slot: a one-shot signed URL the client PUTs ' +
+      'the raw bytes to (no base64 through the API) plus the ready FileRef ' +
+      'value. 502 when storage has no upload endpoint (dev stub) — callers ' +
+      'fall back to attach.',
+    action: null,
+    input: z
+      .object({
+        clientId: z.string().min(1),
+        name: z.string().min(1).max(200),
+        mime: z.string().regex(MIME_RE),
+        size: z.number().int().min(0),
+      })
+      .strict(),
+    handler: async ({ actor, input }) =>
+      deniedIfBlocked(actor) ??
+      bisonUseCasesOf(deps, actor).files.uploadSlot(input),
+  });
+
+/** Captured files: direct-to-bucket uploads (with a base64 fallback
+ *  through the API), reads via signed URLs. */
 export const createBisonFileProcedures = (
   deps: BisonProcedureDeps,
-): ReadonlyArray<ApiProcedure> => [attachFile(deps), fileUrl(deps)];
+): ReadonlyArray<ApiProcedure> => [
+  attachFile(deps),
+  fileUrl(deps),
+  uploadUrl(deps),
+];

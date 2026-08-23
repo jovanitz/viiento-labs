@@ -36,6 +36,7 @@ const inMemoryStorage = () => {
       objects.has(path)
         ? ok(`memory://${path}`)
         : err(fileStorageFailed(`No object at ${path}.`)),
+    createSignedUploadUrl: async ({ path }) => ok(`memory://upload/${path}`),
     remove: async (path) => {
       objects.delete(path);
       return ok(undefined);
@@ -87,6 +88,35 @@ describe('file use cases', () => {
     if (url.ok) expect(url.value).toContain(ref.storagePath);
   });
 
+  it('reserves an upload slot: signed URL + a ready FileRef value', async () => {
+    const { files, clientId } = await harness();
+    const slot = await files.uploadSlot({
+      clientId,
+      name: 'radiografia.png',
+      mime: 'image/png',
+      size: 2048,
+    });
+    expect(slot.ok).toBe(true);
+    if (!slot.ok) return;
+    expect(slot.value.uploadUrl).toBe(
+      `memory://upload/clients/${clientId}/file-1`,
+    );
+    const ref = decodeFileRef(slot.value.value);
+    expect(ref).toMatchObject({
+      name: 'radiografia.png',
+      size: 2048,
+      storagePath: `clients/${clientId}/file-1`,
+    });
+
+    const foreign = await files.uploadSlot({
+      clientId: 'cli-ajena',
+      name: 'x.pdf',
+      mime: 'application/pdf',
+      size: 1,
+    });
+    expect(foreign.ok).toBe(false);
+  });
+
   it('refuses to attach to a client outside this world', async () => {
     const { files } = await harness();
     const attached = await files.attach({
@@ -129,6 +159,8 @@ describe('file use cases', () => {
       files: {
         put: async () => err(fileStorageFailed('bucket unreachable')),
         getSignedUrl: async () => err(fileStorageFailed('bucket unreachable')),
+        createSignedUploadUrl: async () =>
+          err(fileStorageFailed('bucket unreachable')),
         remove: async () => err(fileStorageFailed('bucket unreachable')),
       },
       clients,

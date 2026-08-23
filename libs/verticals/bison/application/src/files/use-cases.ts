@@ -86,12 +86,56 @@ export const makeGetFileUrl =
     });
   };
 
+/**
+ * Reserve a direct-upload slot: server-generated path + a one-shot signed
+ * URL the client PUTs the raw bytes to, plus the encoded FileRef value the
+ * block will hold once the upload lands. Fails on adapters without a
+ * reachable upload endpoint (in-memory dev) — callers fall back to
+ * `attach`.
+ */
+export const makeCreateUploadSlot =
+  (deps: FileUseCaseDeps) =>
+  async (input: {
+    readonly clientId: string;
+    readonly name: string;
+    readonly mime: string;
+    readonly size: number;
+  }): Promise<
+    Result<
+      { readonly uploadUrl: string; readonly value: string },
+      FileUseCaseError
+    >
+  > => {
+    const clientId = makeClientId(input.clientId);
+    if (!clientId.ok) return err(clientId.error);
+    const client = await deps.clients.findById(clientId.value);
+    if (!client) {
+      return err(clientNotFound(`No client with id ${input.clientId}.`));
+    }
+
+    const path = `clients/${clientId.value}/${deps.ids.next()}`;
+    const signed = await deps.files.createSignedUploadUrl({ path });
+    if (!signed.ok) return err(signed.error);
+
+    return ok({
+      uploadUrl: signed.value,
+      value: encodeFileRef({
+        name: input.name,
+        mime: input.mime,
+        size: input.size,
+        storagePath: path,
+      }),
+    });
+  };
+
 export type FileUseCases = {
   readonly attach: ReturnType<typeof makeAttachFile>;
   readonly url: ReturnType<typeof makeGetFileUrl>;
+  readonly uploadSlot: ReturnType<typeof makeCreateUploadSlot>;
 };
 
 export const makeFileUseCases = (deps: FileUseCaseDeps): FileUseCases => ({
   attach: makeAttachFile(deps),
   url: makeGetFileUrl(deps),
+  uploadSlot: makeCreateUploadSlot(deps),
 });

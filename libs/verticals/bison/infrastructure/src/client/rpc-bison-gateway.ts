@@ -34,9 +34,57 @@ const callProcedure = async <T>(
   return ok(response.value.data);
 };
 
+type AttachInput = {
+  readonly clientId: string;
+  readonly name: string;
+  readonly mime: string;
+  readonly bytesBase64: string;
+};
+
+/**
+ * Direct-to-bucket upload: reserve a slot, PUT the raw bytes to the signed
+ * URL, return the ready FileRef value. `null` means "couldn't" (dev stub
+ * without storage, slot denied, network) — the caller falls back to the
+ * base64 attach through the API, so uploads always work somewhere.
+ */
+const directAttach = async (
+  call: <T>(name: string, body?: unknown) => Promise<Result<T, unknown>>,
+  fetchFn: typeof fetch,
+  input: AttachInput,
+): Promise<string | null> => {
+  try {
+    const bytes = Uint8Array.from(atob(input.bytesBase64), (c) =>
+      c.charCodeAt(0),
+    );
+    const slot = await call<{
+      readonly uploadUrl: string;
+      readonly value: string;
+    }>('bison.files.uploadUrl', {
+      clientId: input.clientId,
+      name: input.name,
+      mime: input.mime,
+      size: bytes.byteLength,
+    });
+    if (!slot.ok) return null;
+    const put = await fetchFn(slot.value.uploadUrl, {
+      method: 'PUT',
+      headers: { 'Content-Type': input.mime },
+      body: bytes.buffer.slice(
+        bytes.byteOffset,
+        bytes.byteOffset + bytes.byteLength,
+      ) as ArrayBuffer,
+    });
+    return put.ok ? slot.value.value : null;
+  } catch {
+    return null;
+  }
+};
+
 export const createRpcBisonGateway = (deps: {
   readonly api: ApiClient;
+  readonly fetchFn?: typeof fetch;
 }): BisonClientGateway => {
+  const fetchFn = deps.fetchFn ?? fetch;
   const call = <T>(name: string, body: unknown = {}) =>
     callProcedure<T>(deps.api, name, body);
 
@@ -58,7 +106,10 @@ export const createRpcBisonGateway = (deps: {
       log: (input) => call('bison.timeline.log', input),
     },
     files: {
-      attach: (input) => call('bison.files.attach', input),
+      attach: async (input) => {
+        const direct = await directAttach(call, fetchFn, input);
+        return direct !== null ? ok(direct) : call('bison.files.attach', input);
+      },
       url: (input) => call('bison.files.url', input),
     },
     agenda: {
@@ -72,6 +123,10 @@ export const createRpcBisonGateway = (deps: {
         add: (input) => call('bison.agenda.blocks.add', input),
         remove: (input) => call('bison.agenda.blocks.remove', input),
       },
+    },
+    formats: {
+      list: () => call('bison.formats.list'),
+      save: (input) => call('bison.formats.save', input),
     },
   };
 };
