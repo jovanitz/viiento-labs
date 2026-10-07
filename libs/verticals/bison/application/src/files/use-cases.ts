@@ -5,7 +5,7 @@ import type { IssuedDocumentId } from '@acme/bison-domain';
 import { clientNotFound } from '../clients/errors';
 import type { ClientRepository } from '../clients/ports';
 import type { IssuedDocumentRepository } from '../documents/ports';
-import { type FileUseCaseError, filePathInvalid } from './errors';
+import { type FileUseCaseError, filePathInvalid, fileTooLarge } from './errors';
 
 export type FileUseCaseDeps = {
   readonly files: FileStorage;
@@ -14,9 +14,25 @@ export type FileUseCaseDeps = {
   readonly ids: IdGenerator;
 };
 
+/**
+ * The ceiling for any captured file, enforced on BOTH upload paths — the
+ * base64 attach AND the direct-to-bucket slot, which otherwise has no
+ * limit at all once real object storage is wired. Images arrive far below
+ * it (the ui downscales at capture); this is what stops a video.
+ */
+export const MAX_FILE_BYTES = 10 * 1024 * 1024;
+
+const tooLarge = (size: number) =>
+  fileTooLarge(
+    `File is ${size} bytes; the limit is ${MAX_FILE_BYTES}.`,
+  );
+
 const PATH_RE = /^clients\/([^/]+)\/[^/]+$/;
 const ISSUED_PATH_RE = /^issued\/([^/]+)$/;
-const DEFAULT_URL_TTL_SECONDS = 300;
+/** How long a signed URL stays valid. Long enough that a viewer's CDN
+ *  can actually reuse it (the ui caches the URL for less than this), short
+ *  enough that a leaked link dies the same day. */
+const DEFAULT_URL_TTL_SECONDS = 60 * 60;
 
 /**
  * Store a captured file's bytes and hand back the encoded `FileRef` string
@@ -34,6 +50,9 @@ export const makeAttachFile =
     readonly mime: string;
     readonly bytes: Uint8Array;
   }): Promise<Result<string, FileUseCaseError>> => {
+    if (input.bytes.byteLength > MAX_FILE_BYTES) {
+      return err(tooLarge(input.bytes.byteLength));
+    }
     const clientId = makeClientId(input.clientId);
     if (!clientId.ok) return err(clientId.error);
     const client = await deps.clients.findById(clientId.value);
@@ -127,6 +146,7 @@ export const makeCreateUploadSlot =
       FileUseCaseError
     >
   > => {
+    if (input.size > MAX_FILE_BYTES) return err(tooLarge(input.size));
     const clientId = makeClientId(input.clientId);
     if (!clientId.ok) return err(clientId.error);
     const client = await deps.clients.findById(clientId.value);

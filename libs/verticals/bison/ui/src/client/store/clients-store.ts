@@ -1,4 +1,6 @@
 import { createStore } from 'zustand/vanilla';
+import { createSignedUrlCache } from './files/signed-url-cache';
+import type { SignedUrlResolver } from './files/signed-url-cache';
 import type {
   BisonClientFlowDeps,
   ClientDetailVM,
@@ -49,58 +51,74 @@ export type ClientsStoreState = {
 
 export type ClientsStore = ReturnType<typeof createClientsStore>;
 
-const fileUrlOn = async (
-  deps: BisonClientFlowDeps,
-  storagePath: string,
-): Promise<string | null> => {
-  const result = await getFileUrl(deps, { storagePath });
-  return result.ok ? result.value : null;
+/**
+ * One signed-URL cache per GATEWAY, not per store: the store is rebuilt
+ * every time the container mounts (each navigation), and a cache that
+ * died with it would mint a fresh URL — a fresh CDN miss — on every
+ * visit. Keyed weakly, so it goes when the gateway does; a different
+ * account means a different gateway, hence a different cache.
+ */
+const cachesByGateway = new WeakMap<object, SignedUrlResolver>();
+
+const fileUrlOn = (deps: BisonClientFlowDeps): SignedUrlResolver => {
+  const existing = cachesByGateway.get(deps.gateway);
+  if (existing) return existing;
+  const resolver = createSignedUrlCache(async (storagePath) => {
+    const result = await getFileUrl(deps, { storagePath });
+    return result.ok ? result.value : null;
+  });
+  cachesByGateway.set(deps.gateway, resolver);
+  return resolver;
 };
 
 /** Photos persist as storage paths; the avatar needs a URL — resolve a
  *  short-lived signed one per row (missing/unreachable → initials). */
 const withPhotoUrl = async (
-  deps: BisonClientFlowDeps,
+  fileUrl: SignedUrlResolver,
   row: ClientRowVM,
 ): Promise<ClientRowVM> => {
   if (!row.photoPath) return row;
-  const url = await fileUrlOn(deps, row.photoPath);
+  const url = await fileUrl(row.photoPath);
   return url ? { ...row, photoUrl: url } : row;
 };
 
 type Patch = (partial: Partial<ClientsStoreState>) => void;
 
+/** The roster draws initials, never the photo (clients.row.tsx) — so it
+ *  resolves no signed URLs at all. Only the detail's header needs one. */
 const rosterReload = async (deps: BisonClientFlowDeps, set: Patch) => {
   const result = await loadClients(deps);
   if (!result.ok) {
     set({ loading: false, error: result.error.message });
     return;
   }
-  const clients = await Promise.all(
-    result.value.clients.map((row) => withPhotoUrl(deps, row)),
-  );
-  set({ loading: false, error: null, roster: { ...result.value, clients } });
+  set({ loading: false, error: null, roster: result.value });
 };
 
 const detailReload = async (
   deps: BisonClientFlowDeps,
   set: Patch,
   clientId: string,
+  fileUrl: SignedUrlResolver,
 ) => {
   const result = await loadClientDetail(deps, { clientId });
   if (!result.ok) {
     set({ loading: false, error: result.error.message });
     return false;
   }
-  const client = await withPhotoUrl(deps, result.value.client);
+  const client = await withPhotoUrl(fileUrl, result.value.client);
   set({ loading: false, error: null, detail: { ...result.value, client } });
   return true;
 };
 
 export const createClientsStore = (deps: BisonClientFlowDeps) =>
   createStore<ClientsStoreState>((set, get) => {
+    // One cache per store: repeat views of the same photo reuse the URL
+    // (a CDN hit) instead of minting a fresh one each render.
+    const fileUrl = fileUrlOn(deps);
     const reloadRoster = () => rosterReload(deps, set);
-    const reloadDetail = (clientId: string) => detailReload(deps, set, clientId);
+    const reloadDetail = (clientId: string) =>
+      detailReload(deps, set, clientId, fileUrl);
 
     return {
       roster: null,
@@ -144,7 +162,7 @@ export const createClientsStore = (deps: BisonClientFlowDeps) =>
         }
         return reloadDetail(id);
       },
-      fileUrl: (storagePath) => fileUrlOn(deps, storagePath),
+      fileUrl: (storagePath) => fileUrl(storagePath),
       logEntry: async (input) => {
         const clientId = get().detail?.client.id;
         if (!clientId) return false;

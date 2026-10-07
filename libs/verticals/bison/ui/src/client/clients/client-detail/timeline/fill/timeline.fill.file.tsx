@@ -11,6 +11,7 @@ import { useEffect, useRef, useState } from 'react';
 import { Download, FileText, Paperclip, X } from 'lucide-react';
 import { Button, toast } from '@acme/ui';
 import { useFileUrlResolver } from '../../../../templates/values/file-url-context';
+import { captureFile } from '../../../../templates/values/capture-file';
 import {
   decodeFileValue,
   encodeFileValue,
@@ -19,18 +20,10 @@ import {
 } from '../../../../templates/values/file-value';
 import type { FileValue } from '../../../../templates/values/file-value';
 
+/** Images are downscaled on the way in (capture-file.ts) — what is
+ *  captured is what gets stored and re-downloaded forever. */
 const readInto = (file: File, onChange: (value: string) => void) => {
-  const reader = new FileReader();
-  reader.onload = () =>
-    onChange(
-      encodeFileValue({
-        name: file.name,
-        mime: file.type,
-        size: file.size,
-        dataUrl: String(reader.result),
-      }),
-    );
-  reader.readAsDataURL(file);
+  void captureFile(file).then((shot) => onChange(encodeFileValue({ ...shot })));
 };
 
 const ThumbImage = ({

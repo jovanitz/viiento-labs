@@ -12,7 +12,7 @@ import { decodeFileRef } from '@acme/bison-domain';
 import { makeClientUseCases } from '../clients/use-cases';
 import type { Client } from '@acme/bison-domain';
 import type { ClientRepository } from '../clients/ports';
-import { makeFileUseCases } from './use-cases';
+import { MAX_FILE_BYTES, makeFileUseCases } from './use-cases';
 
 /** Issued-doc repo fake: these specs never sign issued/ paths. */
 const fakeIssued = {
@@ -183,5 +183,28 @@ describe('file use cases', () => {
     });
     expect(result.ok).toBe(false);
     if (!result.ok) expect(result.error.tag).toBe('app/file-storage-failed');
+  });
+
+  it('refuses a file over the size ceiling on BOTH upload paths', async () => {
+    const { files, clientId } = await harness();
+    const tooBig = new Uint8Array(MAX_FILE_BYTES + 1);
+
+    const attached = await files.attach({
+      clientId,
+      name: 'video.mp4',
+      mime: 'video/mp4',
+      bytes: tooBig,
+    });
+    expect(!attached.ok && attached.error.tag).toBe('app/file-too-large');
+
+    // The direct-to-bucket slot is the path with no transport limit of
+    // its own — the ceiling has to hold here too.
+    const slot = await files.uploadSlot({
+      clientId,
+      name: 'video.mp4',
+      mime: 'video/mp4',
+      size: MAX_FILE_BYTES + 1,
+    });
+    expect(!slot.ok && slot.error.tag).toBe('app/file-too-large');
   });
 });

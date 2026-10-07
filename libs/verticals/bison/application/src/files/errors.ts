@@ -6,8 +6,12 @@ import type { ClientDomainError } from '@acme/bison-domain';
  *  malformed request or a probe; never signed. */
 export const filePathInvalid = defineError('app/file-path-invalid');
 
+/** Over the size ceiling — refused before a byte reaches storage. */
+export const fileTooLarge = defineError('app/file-too-large');
+
 export type FileUseCaseError =
   | FileStorageError
   | ClientDomainError
   | TaggedError<'app/file-path-invalid'>
+  | TaggedError<'app/file-too-large'>
   | TaggedError<'app/client-not-found'>;

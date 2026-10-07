@@ -4,14 +4,16 @@
  * client) and "+ New client" (clients.view.tsx, blank draft), so the photo
  * picker's real file-input behavior isn't duplicated between the two.
  * The photo field picks an image from the device's own gallery/camera — a
- * real `<input type="file">`, read into a data URL that both previews
- * locally AND carries the bytes to Save, where the flow uploads them and
- * persists only the storage path (same staging as captured fill files).
+ * real `<input type="file">`, downscaled and read into a data URL that
+ * both previews locally AND carries the bytes to Save, where the flow
+ * uploads them and persists only the storage path (same staging as
+ * captured fill files).
  */
 import { useRef } from 'react';
 import type { ChangeEvent } from 'react';
 import { Camera } from 'lucide-react';
 import { Avatar, Input, Label } from '@acme/ui';
+import { captureFile } from '../../templates/values/capture-file';
 import { initialsOf } from '../clients.logic';
 import type { ClientRow } from '../clients.types';
 
@@ -45,12 +47,9 @@ const PhotoPicker = ({
   const inputRef = useRef<HTMLInputElement>(null);
   const pickFile = (e: ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
-    if (!file) return;
-    const reader = new FileReader();
-    reader.onload = () => {
-      if (typeof reader.result === 'string') onPick(reader.result);
-    };
-    reader.readAsDataURL(file);
+    // Downscaled at capture: a phone photo is megabytes, and an avatar
+    // never shows more than a few hundred pixels of it.
+    if (file) void captureFile(file).then((shot) => onPick(shot.dataUrl));
   };
   return (
     <div className="relative w-fit">
